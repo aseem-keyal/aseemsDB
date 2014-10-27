@@ -21,11 +21,11 @@
 		%offset = ((query['page'])/10)*10
 		%for p in range(max(1,offset), min(offset+10,npages+1)):
 			%if p == query['page']:
-				%cls = "page current"
+				<li class="active">
 			%else:
-				%cls = "page"
+				<li>
 			%end
-			<li><a href="{{page_href(p)}}" class="{{cls}}">{{p}}</a></li>
+			<a href="{{page_href(p)}}" class="page">{{p}}</a></li>
 		%end
 		&nbsp; <li><a title="Next" class="page" href="{{page_href(min(npages, query['page']+1))}}">&#8250;</a></li>
 		<li><a title="Last" class="page" href="{{page_href(npages)}}">&#187;</a></li>
