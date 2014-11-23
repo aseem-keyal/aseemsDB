@@ -46,10 +46,10 @@
 
     % try:
         % snippet
-    % except NameError:
+    % except:
         % snippet = d['snippet']
     % else:
-        % snippet = d['snippet']
+        % snippet = snippet
     <!--
     Check if there are any bonus keywords, check if there are TU keywords, check
     if there are " 10 " which mean "[10]", otherwise it's probably a TU
