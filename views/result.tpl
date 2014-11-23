@@ -9,7 +9,7 @@
     %for dr, prefix in config['mounts'].items():
         %url = url.replace(dr, prefix)
     %end
-    <h4 id="r{{d['sha']}}" title="{{d['abstract']}}"><span class="badge"><a href="#r{{d['sha']}}">#{{number}}</a></span><a href="{{ ''.join(['http://aseemsdb.me', url[url.find('/static'):]]) }}"> {{d['label']}}</a></h4>
+    <h4 id="r{{d['sha']}}" title="{{d['abstract']}}"><span class="badge"><a href="#r{{d['sha']}}">#{{number}}</a></span><a href="{{ ''.join(['http://aseemsdb.me', url[url.find('/static'):]]) }}"> {{d['label'].replace("_", " ")}}</a></h4>
     %if len(d['ipath']) > 0:
         <h5 class="search-result-ipath">[{{d['ipath']}}]</h5>
     %end
