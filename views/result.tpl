@@ -32,6 +32,7 @@
             % w = w.replace("answer: ", "")
             % w = w.replace("\\", "")
             % w = w.replace("\'", " ")
+            % w = w.replace(".", "")
         %end
         %snippets = d['snippet'].split("...")
         %for snipp in snippets:
@@ -78,6 +79,7 @@
             % w = w.replace("answer: ", "")
             % w = w.replace("\\", "")
             % w = w.replace("\'", " ")
+            % w = w.replace(".", "")
             % d['snippet'] = d['snippet'].replace(w,'<mark>'+w+'</mark>')
         %end
     %end
