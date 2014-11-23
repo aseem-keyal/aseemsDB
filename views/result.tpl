@@ -67,7 +67,7 @@
         %for r in config['dirs']:
             %urllabel = urllabel.replace(r.rsplit('/',1)[0] + '/' , '')
         %end
-        {{urllabel}}
+        {{urllabel.replace("_", " ")}}
     </h5>
     <!--
     Highlight the search query by removing extraneous things from the query

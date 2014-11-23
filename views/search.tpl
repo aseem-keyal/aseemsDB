@@ -48,9 +48,9 @@
         %for d in sorted(dirs, key=str.lower):
             %style = "margin-left: %dem" % (2*d.count('/'))
             %if d in query['dir']:
-                <option style="{{style}}" selected value="{{d}}">{{re.sub('.+/','', d)}}</option>
+                <option style="{{style}}" selected value="{{d}}">{{re.sub('.+/','', d).replace("_", " ")}}</option>
             %else:
-                <option style="{{style}}" value="{{d}}">{{re.sub('.+/','', d)}}</option>
+                <option style="{{style}}" value="{{d}}">{{re.sub('.+/','', d).replace("_", " ")}}</option>
             %end
         %end
         </select><br>
