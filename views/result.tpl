@@ -30,7 +30,8 @@
         %for q in shlex.split(query['query'].replace("'","\\'")):
             % w = strip_accents(q.decode('utf-8').lower()).encode('utf-8')
             % w = w.replace("answer: ", "")
-            % w = w.translate(string.maketrans("",""), string.punctuation)
+            % w = w.replace("\\", "")
+            % w = w.replace("\'", " ")
         %end
         %snippets = d['snippet'].split("...")
         %for snipp in snippets:
@@ -41,6 +42,13 @@
     %else:
         %snippet = d['snippet']
     %end
+
+    % try:
+        % snippet
+    % except NameError:
+        % snippet = d['snippet']
+    % else:
+        % snippet = d['snippet']
     <!--
     Check if there are any bonus keywords, check if there are TU keywords, check
     if there are " 10 " which mean "[10]", otherwise it's probably a TU
@@ -68,7 +76,8 @@
         %if not q == "OR":
             % w = strip_accents(q.decode('utf-8').lower()).encode('utf-8')
             % w = w.replace("answer: ", "")
-            % w = w.translate(string.maketrans("",""), string.punctuation)
+            % w = w.replace("\\", "")
+            % w = w.replace("\'", " ")
             % d['snippet'] = d['snippet'].replace(w,'<mark>'+w+'</mark>')
         %end
     %end
