@@ -38,6 +38,8 @@
         %for snipp in snippets:
             %if w in snipp:
                 %snippet = snipp
+            %else:
+                %snippet = d['snippet']
             %end
         %end
     %else:
