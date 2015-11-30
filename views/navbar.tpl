@@ -11,6 +11,8 @@
   </div>
   <div class="navbar-collapse collapse navbar-responsive-collapse">
     <ul class="nav navbar-nav navbar-right">
+      <li><a href="./faq">FAQ</a></li>
+      <li><a href="./about">About</a></li>
       <li><a href="https://github.com/aseem-keyal/qbdb">Github</a></li>
     </ul>
   </div>

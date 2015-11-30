@@ -222,6 +222,18 @@ def main():
     return { 'dirs': get_dirs(config['dirs'], config['dirdepth']),
             'query': get_query(), 'sorts': SORTS }
 #}}}
+#{{{ faq
+@bottle.route('/faq')
+@bottle.view('faq')
+def faq():
+    return { 'title': "FAQ" }
+#}}}
+#{{{ about
+@bottle.route('/about')
+@bottle.view('about')
+def about():
+    return { 'title': "About" }
+#}}}
 #{{{ results
 @bottle.route('/results')
 @bottle.view('results')

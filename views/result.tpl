@@ -26,6 +26,7 @@
     If we have an ellipsis then we find the portion of the text relevant by splitting
     by the ellipsis and finding the chunk with the query
     -->
+    % snippet = ''
     %if "..." in d['snippet'][:-4]:
         %for q in shlex.split(query['query'].replace("'","\\'")):
             % w = strip_accents(q.decode('utf-8').lower()).encode('utf-8')
@@ -38,13 +39,15 @@
         %for snipp in snippets:
             %if w in snipp:
                 %snippet = snipp
-            %else:
-                %snippet = d['snippet']
             %end
         %end
     %else:
         %snippet = d['snippet']
     %end
+
+    % if snippet == '':
+        % snippet = d['snippet']
+    % end
 
     % try:
         % snippet
@@ -52,6 +55,7 @@
         % snippet = d['snippet']
     % else:
         % snippet = snippet
+
     <!--
     Check if there are any bonus keywords, check if there are TU keywords, check
     if there are " 10 " which mean "[10]", otherwise it's probably a TU
