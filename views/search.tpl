@@ -1,4 +1,5 @@
 %import re
+%import os
 <div class="container">
 <div class="well">
 <form action="results" method="get" class="form-horizontal">
@@ -45,7 +46,7 @@
       <label for="select" class="col-lg-2 control-label">Folder</label>
       <div class="col-lg-10">
         <select name="dir" id="folders" class="form-control">
-        %for d in sorted(dirs, key=str.lower):
+        %for d in sorted(dirs, key=lambda p: (p.count(os.path.sep), p)):
             %style = "margin-left: %dem" % (2*d.count('/'))
             %if d in query['dir']:
                 <option style="{{style}}" selected value="{{d}}">{{re.sub('.+/','', d).replace("_", " ")}}</option>

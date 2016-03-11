@@ -61,13 +61,13 @@
     if there are " 10 " which mean "[10]", otherwise it's probably a TU
     -->
     %if any(conv in snippet for conv in bonuses):
-        <span class="badge">Bonus</span>
+        <span class="label label-info">Bonus</span>
     %elif any(conv in snippet for conv in tossups):
-        <span class="badge">Tossup</span>
+        <span class="label label-primary">Tossup</span>
     %elif snippet.count(" 10 ") > 0:
-        <span class="badge">Bonus</span>
+        <span class="label label-info">Bonus</span>
     %else:
-        <span class="badge">Tossup</span>
+        <span class="label label-primary">Tossup</span>
     %end
 
         %urllabel = d['url'].replace('/'+d['filename'],'').replace('file://','')
