@@ -41,12 +41,11 @@
         </select><br>
       </div>
 </div>
-<div id="collapseOne" class="accordion-body collapse">
 <div class="form-group">
       <label for="select" class="col-lg-2 control-label">Folder</label>
       <div class="col-lg-10">
         <select name="dir" id="folders" class="form-control">
-        %for d in sorted(dirs, key=lambda p: (p.count(os.path.sep), p)):
+        %for d in filter(None, sorted(dirs, key=lambda p: (p.count(os.path.sep), p))):
             %style = "margin-left: %dem" % (2*d.count('/'))
             %if d in query['dir']:
                 <option style="{{style}}" selected value="{{d}}">{{re.sub('.+/','', d).replace("_", " ")}}</option>
@@ -57,6 +56,7 @@
         </select><br>
       </div>
 </div>
+<div id="collapseOne" class="accordion-body collapse">
 <div class="form-group">
       <label for="select" class="col-lg-2 control-label">Sort by</label>
       <div class="col-lg-10">
