@@ -1,0 +1,62 @@
+<div class="container">
+<h3>User Questions</h3>
+
+<h4>What makes this different from <a href="http://quinterest.org/">Quinterest</a>?</h4>
+
+<p>My database does not display the questions inline with the webpage, instead you have to click the green links to open each packet. This is because displaying them inline requires parsing each question (a difficult task, Quinterest admins manually enter each question as of now), while indexing them (knowing what text is in what file) is much easier to do. So in order to get to a question on this database, you have to search, open a file, and ctrl-f for what you want. It's kind of like Windows or Spotlight search but on the web and hopefully faster.</p>
+<br>
+<h4>How many packets do you have in your database?</h4>
+
+<p>I should have everything that has been posted on <a href="http://www.quizbowlpackets.com/">quizbowlpackets</a>, except vanity/trash sets that I feel don't have much study value. If I'm missing something you feel I should include, send me an email at the address on the about page.</p>
+<br>
+<h4>What is all this weird lowercase text flooding my screen when I search?</h4>
+
+<p>That's how the backend software I use stores the packets. The reason that the search works well is it strips out all punctuation and case, and the snippet below each link is printed in this way. Some may find it useless, but quickly scanning it can sometimes be helpful in picking which links to open.</p>
+<br>
+<h4>How do I search for only MS, HS, Collegiate questions?</h4>
+
+<p>Click on additional options and then change the folder. Since there are <em>so many</em> sets listed, an easy way is to press "M", "H", or "C" to just jump to the preferred difficulty. I've also classified everything before 2005 as "old", as it probably isn't as useful for studying as newer packets.</p>
+<br>
+<h4>Why should people use this database over Quinterest?</h4>
+
+<p>This database isn't intended to replace Quinterest. While this database is more complete than Quinterest, looking at each question takes longer. If you want a couple questions on a given topic, Quinterest is a much better option. If you want to read every clue for a certain topic, then this database can do that for you. I personally love Quinterest for looking up something quickly and for its awesome Study feature, something that my database is incapable of having.</p>
+<br>
+
+<h4>What is the difference between all the search options?</h4>
+
+<p>The first option, Exact Search, looks for the exact phrase you search appearing <em>anywhere</em> in a packet. The second option, Answer Line, is used for search for tossups or bonuses on a certain subject (see finicky aspects of it below), and the third option searches for any packet containing all those words in any order and location. </p>
+<br>
+
+<h4>Why isn't the answer line search working?</h4>
+
+<p>The answer line search works by search "ANSWER: " then your query. Because of this, searching "Tolstoy" is unlikely to give a lot of results. A better idea is to search "Leo Tolstoy" or "* Tolstoy", as an asterisk works as a wildcard that can match any number of characters (Leo Tolstoy and Lev Nikolayevich Tolstoy).</p>
+<br>
+
+<h4>Going to your database and typing in my query is really slow, do you have a better solution?</h4>
+
+<p>Yeah, if you're using Chrome then I'd highly recommend the <a href="https://chrome.google.com/webstore/detail/context-menu-search/ocpcmghnefmdhl
+iapafejjohldoga?hl=en">Context Menu Search extension</a>. This allows you to search my database whenever you highlight any text in your browser using your right click menu, if you're willing to do a little configuration. Since my database produces a URL for your search, you can also link people to a search directly, something you are unable to do in Quinterest.</p>
+<br>
+
+<h4>This site kind of sucks on mobile. Are you going do anything to fix that?</h4>
+
+<p>Since my database works by linking you to pdf files, I can't think of any way to make it easier to use at the moment.</p>
+<br>
+
+<h3>Technical Stuff</h3>
+
+<h4>What software are you using to index the packets?</h4>
+
+<p>It's called <a href="http://www.lesbonscomptes.com/recoll/">recoll</a>, and it's awesome. It can index almost anything you want, but I store these packets in pdf form on my server. This database was made when I found a webui on github for recoll and modified its appearance and functionality to fit the needs of searching quizbowl packets.</p>
+<br>
+
+<h4>How long does it take to add a set to the database?</h4>
+
+<p>Around 5-10 minutes. I convert each file to a pdf, upload them to my server, and run a program that indexes the new files.</p>
+<br>
+
+<h4>Are you using <a href="http://getbootstrap.com/">Bootstrap</a>?</h4>
+
+<p>Yes.</p>
+<br>
+</div>

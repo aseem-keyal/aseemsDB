@@ -16,11 +16,24 @@
 	<input name="timefmt" value={{timefmt}}>
 	<b>Folder depth</b> <small class="gray">(number of levels of the folder dropdown)</small>
 	<input name="dirdepth" value={{dirdepth}}>
+	<b>Default action</b> <small class="gray">(action to take when clicking result title)</small>
+	<select name="title_link">
+		<option value="download" {{'selected' if title_link == 'download' else ''}}>Download</option>
+		<option value="preview" {{'selected' if title_link == 'preview' else ''}}>Preview</option>
+		<option value="open" {{'selected' if title_link == 'open' else ''}}>Open</option>
+	</select>
 	<hr>
 	<b>Locations</b><br>
 	%for d in dirs:
 		<small>{{d}}</small><input name="mount_{{d}}" value={{mounts[d]}}>
 	%end
+	<hr>
+        <b>CSV fields</b> <small class="gray">({{fields}})</small><br>
+        <input name="csvfields" value="{{csvfields}}">
+        <hr>
+	<b>Add to browser</b>
+	<br>
+	<a href="#" onClick="addOpenSearch();return false">Register recoll into browser search engines</a>
 	<br><br><hr>
 	<input type="submit" value="Save">
 	<a href="./"><input type="button" value="Cancel"></a>

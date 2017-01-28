@@ -1,4 +1,4 @@
-%import shlex, unicodedata
+%import shlex, unicodedata, os
 %import string
 %def strip_accents(s): return ''.join((c for c in unicodedata.normalize('NFD', s) if unicodedata.category(c) != 'Mn'))
 <div class="container">
@@ -9,14 +9,36 @@
     %for dr, prefix in config['mounts'].items():
         %url = url.replace(dr, prefix)
     %end
-    <h4 id="r{{d['sha']}}" title="{{d['abstract']}}"><span class="badge"><a href="#r{{d['sha']}}">#{{number}}</a></span><a href="{{ ''.join(['http://aseemsdb.me', url[url.find('/static'):]]) }}"> {{d['label'].replace("_", " ")}}</a></h4>
+    <h4 id="r{{d['sha']}}" title="{{d['abstract']}}">
+		<span class="badge">
+			<a href="#r{{d['sha']}}">#{{number}}</a>
+		</span>
+		%if config.has_key('title_link') and config['title_link'] != 'download':
+			%if config['title_link'] == 'open':
+				<a href="{{ ''.join(['http://aseemsdb.me', url[url.find('/static'):]]) }}"> {{d['label'].replace("_", " ")}}</a>
+			%elif config['title_link'] == 'preview':
+				<a href="preview/{{number-1}}?{{query_string}}">{{d['label']}}</a>
+			%end
+		%else:
+            <a href="{{ ''.join(['http://aseemsdb.me', url[url.find('/static'):]]) }}"> {{d['label'].replace("_", " ")}}</a>
+            <h5>
+            <a style="color: #666; float:right" href="preview/{{number-1}}?{{query_string}}" target="_blank">Preview</a>
+            </h5>
+            <!--
+			<a href="download/{{number-1}}?{{query_string}}">{{d['label']}}</a>
+            --!>
+		%end
+	</h4>
+
+
     %if len(d['ipath']) > 0:
-        <h5 class="search-result-ipath">[{{d['ipath']}}]</h5>
+        <h5>[{{d['ipath']}}]</h5>
     %end
-    %if  len(d['author']) > 0:
-        <h5 class="search-result-author">by {{d['author']}}</h5>
+    %if d.has_key('author') and len(d['author']) > 0:
+        <h5>{{d['author']}}</h5>
     %end
-    <h5 class="search-result-url">
+
+	<h5 class="search-result-url">
     <!--
     If it has these words it's probably a bonus, the other words then its a TU
     -->
@@ -77,9 +99,15 @@
         {{urllabel.replace("_", " ")}}
     </h5>
     <!--
-    Highlight the search query by removing extraneous things from the query
+    <h4 class="search-result-links">
+        <a href="{{url}}">Open</a>
+        <a href="download/{{number-1}}?{{query_string}}">Download</a>
+    %if hasrclextract:
+        <a href="preview/{{number-1}}?{{query_string}}" target="_blank">Preview</a>
+    %end
+    </h4>
     --!>
-    %for q in shlex.split(query['query'].replace("'","\\'")):
+	 %for q in shlex.split(query['query'].replace("'","\\'")):
         %if not q == "OR":
             % w = strip_accents(q.decode('utf-8').lower()).encode('utf-8')
             % w = w.replace("answer: ", "")

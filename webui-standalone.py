@@ -1,5 +1,20 @@
-#!env python
-import bottle
+#!/usr/bin/env python
+import os
+import argparse
 import webui
 
-bottle.run(host='107.191.106.186', port=80, reloader=False, quiet='false', server='tornado')
+# handle command-line arguments
+parser = argparse.ArgumentParser()
+parser.add_argument('-a', '--addr', default='107.191.106.186', help='address to bind to [127.0.0.1]')
+parser.add_argument('-p', '--port', default='80', type=int, help='port to listen on [8080]')
+args = parser.parse_args()
+
+# change to webui's directory and import
+if os.path.dirname(__file__) != "":
+    os.chdir(os.path.dirname(__file__))
+
+# set up webui and run in own http server
+webui.bottle.debug(False)
+webui.bottle.run(host=args.addr, port=args.port, reloader=False, quiet=False, server='tornado')
+
+# vim: foldmethod=marker:filetype=python:textwidth=80:ts=4:et

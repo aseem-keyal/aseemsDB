@@ -1,9 +1,9 @@
-#!env python
+#!/usr/bin/env python
 #{{{ imports
 import os
 import bottle
 import time
-import recoll
+import sys
 import datetime
 import glob
 import hashlib
@@ -14,12 +14,21 @@ import ConfigParser
 import string
 import shlex
 import urllib
-from pprint import pprint
+# import recoll and rclextract
+try:
+    from recoll import recoll
+    from recoll import rclextract
+    hasrclextract = True
+except:
+    import recoll
+    hasrclextract = False
+# import rclconfig system-wide or local copy
+try:
+    from recoll import rclconfig
+except:
+    import rclconfig
 #}}}
 #{{{ settings
-# recoll settings
-RECOLL_CONFS = [ '$RECOLL_CONFDIR', '~/.recoll', '/usr/share/recoll/examples' ]
-
 # settings defaults
 DEFAULTS = {
     'context': 30,
@@ -29,14 +38,16 @@ DEFAULTS = {
     'maxchars': 500,
     'maxresults': 0,
     'perpage': 25,
+    'csvfields': 'filename title author size time mtype url',
+    'title_link': 'download',
 }
 
 # sort fields/labels
 SORTS = [
     ("url", "Path"),
+    ("relevancyrating", "Relevancy"),
     ("mtime", "Date",),
     ("filename", "Filename"),
-    ("relevancyrating", "Relevancy"),
     ("fbytes", "Size"),
     ("author", "Author"),
 ]
@@ -75,6 +86,8 @@ def select(ls, invalid=[None]):
             return value
 
 def timestr(secs, fmt):
+    if secs == '' or secs is None:
+        secs = '0'
     t = time.gmtime(int(secs))
     return time.strftime(fmt, t)
 
@@ -88,38 +101,24 @@ def normalise_filename(fn):
             out += "_"
     return out
 #}}}
-#{{{ recoll_get_config
-def recoll_get_config():
-    # find recoll.conf
-    for d in RECOLL_CONFS:
-        d = os.path.expanduser(d)
-        d = os.path.expandvars(d)
-        if os.path.isdir(d):
-            confdir = d
-            break
-    # read recoll.conf
-    rc_ini_str = '[main]\n' + open(confdir + '/recoll.conf', 'r').read().replace('\\\n', '')
-    rc_ini_fp = StringIO.StringIO(rc_ini_str)
-    rc_ini = ConfigParser.RawConfigParser()
-    rc_ini.readfp(rc_ini_fp)
-    # parse recoll.conf
-    rc = {}
-    for s in rc_ini.sections():
-        rc[s] = {}
-        for k, v in rc_ini.items(s):
-            rc[s][k] = v
-    return confdir, rc
-#}}}
 #{{{ get_config
 def get_config():
     config = {}
     # get useful things from recoll.conf
-    config['confdir'], rc = recoll_get_config()
-    config['dirs'] = shlex.split(rc['main']['topdirs'])
+    rclconf = rclconfig.RclConfig()
+    config['confdir'] = rclconf.getConfDir()
+    config['dirs'] = [os.path.expanduser(d) for d in
+                      shlex.split(rclconf.getConfParam('topdirs'))]
+    config['stemlang'] = rclconf.getConfParam('indexstemminglanguages')
     # get config from cookies or defaults
     for k, v in DEFAULTS.items():
         value = select([bottle.request.get_cookie(k), v])
         config[k] = type(v)(value)
+    # Fix csvfields: get rid of invalid ones to avoid needing tests in the dump function
+    cf = config['csvfields'].split()
+    ncf = [f for f in cf if f in FIELDS]
+    config['csvfields'] = ' '.join(ncf)
+    config['fields'] = ' '.join(FIELDS)
     # get mountpoints
     config['mounts'] = {}
     for d in config['dirs']:
@@ -136,7 +135,7 @@ def get_dirs(tops, depth):
             dirs = dirs + glob.glob(top + '/*' * d)
         dirs = filter(lambda f: os.path.isdir(f), dirs)
         top_path = top.rsplit('/', 1)[0]
-        dirs = [w.replace(top_path+'/', '') for w in dirs]
+        dirs = [w.replace(top_path+'/', '', 1) for w in dirs]
         v = v + dirs
     return ['<all>'] + v
 #}}}
@@ -168,23 +167,38 @@ def query_to_recoll_string(q):
     if len(q['after']) > 0 or len(q['before']) > 0:
         qs += " date:%s/%s" % (q['after'], q['before'])
     if q['dir'] != '<all>':
-        qs += " dir:\"%s\" " % q['dir']
+        qs += " dir:\"%s\" " % q['dir'].decode('utf-8')
     return qs
 #}}}
-#{{{ recoll_search
-def recoll_search(q):
+#{{{ recoll_initsearch
+def recoll_initsearch(q):
     config = get_config()
-    tstart = datetime.datetime.now()
-    results = []
     db = recoll.connect(config['confdir'])
     db.setAbstractParams(config['maxchars'], config['context'])
     query = db.query()
     query.sortby(q['sort'], q['ascending'])
     try:
         qs = query_to_recoll_string(q)
-        nres = query.execute(qs, config['stem'])
+        query.execute(qs, config['stem'], config['stemlang'])
     except:
-        nres = 0
+        pass
+    return query
+#}}}
+#{{{ HlMeths
+class HlMeths:
+    def startMatch(self, idx):
+        return '<span class="search-result-highlight">'
+    def endMatch(self):
+        return '</span>'
+#}}}
+#{{{ recoll_search
+def recoll_search(q, dosnippets=True):
+    config = get_config()
+    tstart = datetime.datetime.now()
+    results = []
+    query = recoll_initsearch(q)
+    nres = query.rowcount
+
     if config['maxresults'] == 0:
         config['maxresults'] = nres
     if nres > config['maxresults']:
@@ -193,16 +207,31 @@ def recoll_search(q):
         config['perpage'] = nres
         q['page'] = 1
     offset = (q['page'] - 1) * config['perpage']
-    query.next = offset
-    while query.next >= 0 and query.next < offset + config['perpage'] and query.next < nres:
-        doc = query.fetchone()
+
+    if query.rowcount > 0:
+        if type(query.next) == int:
+            query.next = offset
+        else:
+            query.scroll(offset, mode='absolute')
+
+    highlighter = HlMeths()
+    for i in range(config['perpage']):
+        try:
+            doc = query.fetchone()
+        except:
+            break
         d = {}
         for f in FIELDS:
-            d[f] = getattr(doc, f).encode('utf-8')
+            v = getattr(doc, f)
+            if v is not None:
+                d[f] = v.encode('utf-8')
+            else:
+                d[f] = ''
         d['label'] = select([d['title'], d['filename'], '?'], [None, ''])
         d['sha'] = hashlib.sha1(d['url']+d['ipath']).hexdigest()
         d['time'] = timestr(d['mtime'], config['timefmt'])
-        d['snippet'] = db.makeDocAbstract(doc, query).encode('utf-8')
+        if dosnippets:
+            d['snippet'] = query.makedocabstract(doc, highlighter).encode('utf-8')
         results.append(d)
     tend = datetime.datetime.now()
     return results, nres, tend - tstart
@@ -247,8 +276,61 @@ def results():
     if config['perpage'] == 0:
         config['perpage'] = nres
     return { 'res': res, 'time': timer, 'query': query, 'dirs':
-            get_dirs(config['dirs'], config['dirdepth']),'qs': qs, 'sorts': SORTS, 'config': config,
-            'query_string': bottle.request.query_string, 'nres': nres  }
+            get_dirs(config['dirs'], config['dirdepth']),
+             'qs': qs, 'sorts': SORTS, 'config': config,
+            'query_string': bottle.request.query_string, 'nres': nres,
+             'hasrclextract': hasrclextract }
+#}}}
+#{{{ preview
+@bottle.route('/preview/<resnum:int>')
+def preview(resnum):
+    if not hasrclextract:
+        return 'Sorry, needs recoll version 1.19 or later'
+    query = get_query()
+    qs = query_to_recoll_string(query)
+    rclq = recoll_initsearch(query)
+    if resnum > rclq.rowcount - 1:
+        return 'Bad result index %d' % resnum
+    rclq.scroll(resnum)
+    doc = rclq.fetchone()
+    xt = rclextract.Extractor(doc)
+    tdoc = xt.textextract(doc.ipath)
+    if tdoc.mimetype == 'text/html':
+        bottle.response.content_type = 'text/html; charset=utf-8'
+    else:
+        bottle.response.content_type = 'text/plain; charset=utf-8'
+    return tdoc.text
+#}}}
+#{{{ download
+@bottle.route('/download/<resnum:int>')
+def edit(resnum):
+    if not hasrclextract:
+        return 'Sorry, needs recoll version 1.19 or later'
+    query = get_query()
+    qs = query_to_recoll_string(query)
+    rclq = recoll_initsearch(query)
+    if resnum > rclq.rowcount - 1:
+        return 'Bad result index %d' % resnum
+    rclq.scroll(resnum)
+    doc = rclq.fetchone()
+    bottle.response.content_type = doc.mimetype
+    pathismine = False
+    if doc.ipath == '':
+        # If ipath is null, we can just return the file
+        path = doc.url.replace('file://','')
+    else:
+        # Else this is a subdocument, extract to temporary file
+        xt = rclextract.Extractor(doc)
+        path = xt.idoctofile(doc.ipath, doc.mimetype)
+        pathismine = True
+    bottle.response.headers['Content-Disposition'] = \
+        'attachment; filename="%s"' % os.path.basename(path).encode('utf-8')
+    path = path.encode('utf-8')
+    bottle.response.headers['Content-Length'] = os.stat(path).st_size
+    f = open(path, 'r')
+    if pathismine:
+        os.unlink(path)
+    return f
 #}}}
 #{{{ json
 @bottle.route('/json')
@@ -265,18 +347,20 @@ def get_json():
 #{{{ csv
 @bottle.route('/csv')
 def get_csv():
+    config = get_config()
     query = get_query()
     query['page'] = 0
     qs = query_to_recoll_string(query)
     bottle.response.headers['Content-Type'] = 'text/csv'
     bottle.response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.csv' % normalise_filename(qs)
-    res, nres, timer = recoll_search(query)
+    res, nres, timer = recoll_search(query, False)
     si = StringIO.StringIO()
     cw = csv.writer(si)
-    cw.writerow(FIELDS)
+    fields = config['csvfields'].split()
+    cw.writerow(fields)
     for doc in res:
         row = []
-        for f in FIELDS:
+        for f in fields:
             row.append(doc[f])
         cw.writerow(row)
     return si.getvalue().strip("\r\n")
@@ -291,11 +375,20 @@ def settings():
 def set():
     config = get_config()
     for k, v in DEFAULTS.items():
-        bottle.response.set_cookie(k, str(bottle.request.query.get(k)), max_age=3153600000)
+        bottle.response.set_cookie(k, str(bottle.request.query.get(k)), max_age=3153600000, expires=315360000)
     for d in config['dirs']:
         cookie_name = 'mount_%s' % urllib.quote(d, '')
-        bottle.response.set_cookie(cookie_name, str(bottle.request.query.get('mount_%s' % d)), max_age=3153600000)
+        bottle.response.set_cookie(cookie_name, str(bottle.request.query.get('mount_%s' % d)), max_age=3153600000, expires=315360000)
     bottle.redirect('./')
 #}}}
+#{{{ osd
+@bottle.route('/osd.xml')
+@bottle.view('osd')
+def main():
+    #config = get_config()
+    url = bottle.request.urlparts
+    url = '%s://%s' % (url.scheme, url.netloc)
+    return {'url': url}
 #}}}
 # vim: fdm=marker:tw=80:ts=4:sw=4:sts=4:et
+
