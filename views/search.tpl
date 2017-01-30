@@ -9,13 +9,16 @@
       <label for="inputEmail" class="col-lg-2 control-label">Query</label>
       <div class="col-lg-10">
         %if query['searchtype'] == 1:
-            <input type="text" id="typeahead" class="form-control" name="query" placeholder="{{query['query'][1:-1]}}" value="{{query['query'][1:-1]}}">
+            <input type="text" id="typeahead" class="form-control" name="query" placeholder="{{query['query'][1:-2]}}" value="{{query['query'][1:-2]}}">
         %end
         %if query['searchtype'] == 2:
             <input type="text" id="typeahead" class="form-control" name="query" placeholder="{{query['query'][6:-1]}}" value="{{query['query'][9:-1]}}">
         %end
         %if query['searchtype'] == 3:
             <input type="text" id="typeahead" class="form-control" name="query" placeholder="{{query['query']}}" value="{{query['query']}}">
+        %end
+        %if query['searchtype'] == 4:
+            <input type="text" id="typeahead" class="form-control" name="query" placeholder="{{query['query'][1:-1]}}" value="{{query['query'][1:-1]}}">
         %end
 	</div>
 </div>
@@ -27,16 +30,25 @@
                 <option value="1" selected>Exact Phrase</option>
                 <option value="2">Answer Line</option>
                 <option value="3">All these words (any order)</option>
+                <option value="4">All word forms (enable stemming)</option>
         %end
         %if query['searchtype'] == 2:
                 <option value="1">Exact Phrase</option>
                 <option value="2" selected>Answer Line</option>
                 <option value="3">All these words (any order)</option>
+                <option value="4">All word forms (enable stemming)</option>
         %end
         %if query['searchtype'] == 3:
                 <option value="1">Exact Phrase</option>
                 <option value="2">Answer Line</option>
                 <option value="3" selected>All these words (any order)</option>
+                <option value="4">All word forms (enable stemming)</option>
+        %end
+        %if query['searchtype'] == 4:
+                <option value="1">Exact Phrase</option>
+                <option value="2">Answer Line</option>
+                <option value="3">All these words (any order)</option>
+                <option value="4" selected>All word forms (enable stemming)</option>
         %end
         </select><br>
       </div>

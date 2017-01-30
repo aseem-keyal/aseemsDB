@@ -153,9 +153,11 @@ def get_query():
     }
     searchtype = int(select([bottle.request.query.get('searchtype'), 1]))
     if searchtype == 1:
-        query['query'] = '"' + query['query'] + '"'
+        query['query'] = '"' + query['query'] + '"l'
     elif searchtype == 2:
         query['query'] = '"ANSWER: ' + query['query'] + '"'
+    elif searchtype == 4:
+        query['query'] = '"' + query['query'] + '"'
     return query
 #}}}
 #{{{ query_to_recoll_string

@@ -24,7 +24,7 @@
 
 <h4>What is the difference between all the search options?</h4>
 
-<p>The first option, Exact Search, looks for the exact phrase you search appearing <em>anywhere</em> in a packet. The second option, Answer Line, is used for search for tossups or bonuses on a certain subject (see finicky aspects of it below), and the third option searches for any packet containing all those words in any order and location. </p>
+<p>The first option, Exact Search, looks for the exact phrase you search appearing <em>anywhere</em> in a packet. The second option, Answer Line, is used for search for tossups or bonuses on a certain subject (see finicky aspects of it below), and the third option searches for any packet containing all those words in any order and location. Option four is for if you are searching a single word and wish for packets containing all word forms of that word to appear in the results.</p>
 <br>
 
 <h4>Why isn't the answer line search working?</h4>
