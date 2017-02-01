@@ -1,9 +1,12 @@
 %q = dict(query)
 %if q['searchtype'] == 1:
-    %q['query'] = q['query'][1:-1]
+    %q['query'] = q['query'][1:-2]
 %end
 %if q['searchtype'] == 2:
     %q['query'] = q['query'][9:-1]
+%end
+%if q['searchtype'] == 4:
+    %q['query'] = q['query'][1:-1]
 %end
 %def page_href(page):
 	%q['page'] = page
