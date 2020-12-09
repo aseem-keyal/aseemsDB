@@ -29,26 +29,17 @@
         %if query['searchtype'] == 1:
                 <option value="1" selected>Exact Phrase</option>
                 <option value="2">Answer Line</option>
-                <option value="3">All these words (any order)</option>
-                <option value="4">All word forms (enable stemming)</option>
+                <option value="3">All these words (manual mode)</option>
         %end
         %if query['searchtype'] == 2:
                 <option value="1">Exact Phrase</option>
                 <option value="2" selected>Answer Line</option>
-                <option value="3">All these words (any order)</option>
-                <option value="4">All word forms (enable stemming)</option>
+                <option value="3">All these words (manual mode)</option>
         %end
         %if query['searchtype'] == 3:
                 <option value="1">Exact Phrase</option>
                 <option value="2">Answer Line</option>
-                <option value="3" selected>All these words (any order)</option>
-                <option value="4">All word forms (enable stemming)</option>
-        %end
-        %if query['searchtype'] == 4:
-                <option value="1">Exact Phrase</option>
-                <option value="2">Answer Line</option>
-                <option value="3">All these words (any order)</option>
-                <option value="4" selected>All word forms (enable stemming)</option>
+                <option value="3" selected>All these words (manual mode)</option>
         %end
         </select><br>
       </div>

@@ -82,7 +82,6 @@
     Check if there are any bonus keywords, check if there are TU keywords, check
     if there are " 10 " which mean "[10]", otherwise it's probably a TU
     -->
-    <!--
     %if any(conv in snippet for conv in bonuses):
         <span class="label label-info">Bonus</span>
     %elif any(conv in snippet for conv in tossups):
@@ -92,7 +91,6 @@
     %else:
         <span class="label label-primary">Tossup</span>
     %end
-    -->
 
         %urllabel = d['url'].replace('/'+d['filename'],'').replace('file://','')
         %for r in config['dirs']:
