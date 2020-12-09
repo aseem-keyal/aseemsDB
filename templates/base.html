@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    {% block head %}
+    <link rel="stylesheet" href="static/bootstrap.min.css" />
+    <link rel="stylesheet" href="static/theme.css" />
+    <link rel="stylesheet" href="static/style.css" />
+    <title>aseemsDB{% block title %}{% endblock %}</title>
+    {% endblock %}
+</head>
+<body>
+    <div class="container">{% block content %}{% endblock %}</div>
+</body>
+</html>

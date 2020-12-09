@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+{% block title %} - Results{% endblock %}
+{% block content %}
+	{% for result in results %}
+		{% include 'components/result.html' %}
+	{% endfor %}
+{% endblock %}
