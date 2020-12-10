@@ -2,8 +2,10 @@
 {% block title %} - Results{% endblock %}
 {% block content %}
 	{% include 'components/search.html' %}
-	<p>{{ nres }} results in {{ time.seconds }}.{{ time.microseconds/10000}} seconds</p>
+	{% include 'components/pages.html' %}
+	<p>{{ nres }} results in {{ time }} seconds</p>
 	{% for result in results %}
 		{% include 'components/result.html' %}
 	{% endfor %}
+	{% include 'components/pages.html' %}
 {% endblock %}

@@ -8,6 +8,8 @@ import re
 import datetime
 import glob
 import os
+import math
+import urllib
 
 try:
     from recoll import recoll
@@ -76,8 +78,11 @@ async def results(request: Request,
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
                                                         "nres": nres,
-                                                        "time": time,
+                                                        "time": round(time.total_seconds(), 2),
                                                         "searchtype": searchtype,
+                                                        "page": page,
+                                                        "pages": calculate_pages(nres, 25),
+                                                        "page_href": render_page_link,
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
                                                         "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
@@ -108,8 +113,17 @@ class HlMeths:
 def render_path(path):
     return re.sub('.+/','', path).replace("_", " ")
 
+def render_page_link(query, page):
+    q = dict(query)
+    q['page'] = page
+    # TODO: extract 'results' out into a string variable
+    return './results?%s' % urllib.parse.urlencode(q)
+
 def calculate_offset(page, per_page):
     return (page - 1) * per_page
+
+def calculate_pages(nres, per_page):
+    return int(math.ceil(nres/float(per_page)))
 
 def build_query_string(query, dir):
     qs = query
