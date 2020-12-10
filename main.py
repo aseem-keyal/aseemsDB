@@ -82,7 +82,7 @@ async def results(request: Request,
                                                         "time": round(time.total_seconds(), 2),
                                                         "searchtype": searchtype,
                                                         "page": page,
-                                                        "qs": build_query_string(query, dir),
+                                                        "qs": build_query_string(wrap_query(query, searchtype), dir),
                                                         "pages": calculate_pages(nres, 25),
                                                         "page_href": render_page_link,
                                                         "packet_href": render_packet_link,
@@ -172,11 +172,12 @@ def scroll_query(query, offset):
 def make_question_badge(snippet):
     bonus_badge = '<span class="label label-info">Bonus</span>'
     tossup_badge = '<span class="label label-primary">Tossup</span>'
+    snippet = snippet.lower()
     if any(keyword in snippet for keyword in bonus_keywords):
         return bonus_badge
     elif any(keyword in snippet for keyword in tossup_keywords):
         return tossup_badge
-    elif snippet.count(" 10 ") > 0:
+    elif snippet.count(" [10] ") > 0:
         return bonus_badge
     else:
         return tossup_badge
@@ -204,7 +205,6 @@ def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True
             if dosnippets:
                 d['snippet'] = q.makedocabstract(doc, highlighter)
                 d['question_type'] = make_question_badge(d['snippet'])
-            print(d)
             results.append(d)
         except:
             break
