@@ -1,0 +1,69 @@
+<div class="well">
+<form action="results" method="get" class="form-horizontal">
+<fieldset>
+<legend>Search</legend>
+<div class="form-group">
+      <label for="inputEmail" class="col-lg-2 control-label">Query</label>
+      <div class="col-lg-10">
+	<input type="text" id="typeahead" class="form-control" name="query" placeholder="{{request.query_params['query']}}" value="{{request.query_params['query']}}">
+      </div>
+</div>
+<div class="form-group">
+      <label for="select" class="col-lg-2 control-label">Search Type</label>
+      <div class="col-lg-10">
+        <select name="searchtype" class="form-control" id="select">
+                <option value="1" {% if searchtype==1 %}selected{% endif %}>Exact Phrase</option>
+                <option value="2" {% if searchtype==2 %}selected{% endif %}>Answer Line</option>
+                <option value="3" {% if searchtype==3 %}selected{% endif %}>All these words (manual mode)</option>
+        </select><br>
+      </div>
+</div>
+<div class="form-group">
+      <label for="select" class="col-lg-2 control-label">Folder</label>
+      <div class="col-lg-10">
+        <select name="dir" id="folders" class="form-control">
+	{% for d in dirs %} 
+		{% if d in request.query_params['dir'] %}
+			<option selected value="{{d}}">{{render_path(d)}}</option>
+		{% else %}
+			<option value="{{d}}">{{render_path(d)}}</option>
+		{% endif %}
+        {% endfor %}
+        </select><br>
+      </div>
+</div>
+<div id="collapseOne" class="accordion-body collapse">
+<div class="form-group">
+      <label for="select" class="col-lg-2 control-label">Sort by</label>
+      <div class="col-lg-10">
+        <select name="sort" class="form-control" id="select">
+	{% for sort in sorts %}
+		{% if request.query_params['sort'] == sort[0] %}
+			<option selected value="{{sort[0]}}">{{sort[1]}}</option>
+		{% else %}
+			<option value="{{sort[0]}}">{{sort[1]}}</option>
+		{% endif %}
+	{% endfor %}
+        </select><br>
+      </div>
+</div>
+<div class="form-group">
+      <label for="select" class="col-lg-2 control-label">Order</label>
+      <div class="col-lg-10">
+        <select name="ascending" class="form-control" id="select">
+		<option value="0" {% if ascending==0 %}selected{% endif %}>Descending</option>
+		<option value="1" {% if ascending==1 %}selected{% endif %}>Ascending</option>
+        </select><br>
+      </div>
+</div>
+</div>
+<div class="form-group">
+      <div class="col-lg-12 col-lg-offset-2">
+	<a class="accordion-toggle btn btn-default" data-toggle="collapse" href="#collapseOne"> Options</a>
+        <button type="submit" class="btn btn-primary">Search</button>
+      </div>
+</div>
+<input type="hidden" name="page" value="1" />
+</fieldset>
+</form>
+</div>

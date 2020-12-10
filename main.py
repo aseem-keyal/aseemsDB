@@ -4,7 +4,10 @@ from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+import re
 import datetime
+import glob
+import os
 
 try:
     from recoll import recoll
@@ -17,6 +20,15 @@ try:
     from recoll import rclconfig
 except:
     import rclconfig
+
+SORTS = [
+    ("url", "Path"),
+    ("relevancyrating", "Relevancy"),
+    ("mtime", "Date",),
+    ("filename", "Filename"),
+    ("fbytes", "Size"),
+    ("author", "Author"),
+]
 
 FIELDS = [
     # exposed by python api
@@ -48,26 +60,53 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # API methods
+@app.get("/", response_class=HTMLResponse)
+async def main(request: Request):
+    return templates.TemplateResponse("main.html", {"request": request})
+
 @app.get("/results", response_class=HTMLResponse)
 async def results(request: Request, 
         query: str,
-        searchType: Optional[int] = Query(1, ge=1, le=3),
+        searchtype: Optional[int] = Query(1, ge=1, le=3),
         dir: Optional[str] = "<all>",
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
         page: Optional[int] = Query(1, ge=1)):
-    results, nres, time = recoll_search(query, searchType, dir, sort, ascending, page)
+    results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
-                                                        "nres": nres})
+                                                        "nres": nres,
+                                                        "time": time,
+                                                        "searchtype": searchtype,
+                                                        "sorts": SORTS,
+                                                        "render_path": render_path,
+                                                        "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
 
 # Helper methods
 query_wraps = ["\"%s\"l", "\"ANSWER: %s\"", "%s"]
+def get_dirs(tops, depth):
+    v = []
+    for top in tops:
+        dirs = [top]
+        for d in range(1, depth+1):
+            dirs = dirs + glob.glob(top + '/*' * d)
+        dirs = filter(lambda f: os.path.isdir(f), dirs)
+        top_path = top.rsplit('/', 1)[0]
+        dirs = [w.replace(top_path+'/', '', 1) for w in dirs]
+        v = v + dirs
+    return ['<all>'] + v
+
+def sorted_dirs(tops, depth):
+    return filter(None, sorted(get_dirs(tops, depth), key=lambda p: (p.count(os.path.sep), p)))
+
 class HlMeths:
     def startMatch(self, idx):
         return '<span class="search-result-highlight">'
     def endMatch(self):
         return '</span>'
+
+def render_path(path):
+    return re.sub('.+/','', path).replace("_", " ")
 
 def calculate_offset(page, per_page):
     return (page - 1) * per_page
@@ -83,6 +122,7 @@ def build_query_string(query, dir):
 
 def recoll_initsearch(query, dir, sort, ascending):
     db = recoll.connect()
+    db.setAbstractParams(200, 30)
     q = db.query()
     q.sortby(sort, ascending)
     qs = build_query_string(query, dir)
@@ -97,8 +137,8 @@ def scroll_query(query, offset):
             query.scroll(offset, mode='absolute')
     return query
 
-def recoll_search(query, searchType, dir, sort, ascending, page, dosnippets=True):
-    query = wrap_query(query, searchType)
+def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
+    query = wrap_query(query, searchtype)
     tstart = datetime.datetime.now()
     q = recoll_initsearch(query, dir, sort, ascending)
     nres = q.rowcount
@@ -118,7 +158,7 @@ def recoll_search(query, searchType, dir, sort, ascending, page, dosnippets=True
                 else:
                     d[f] = ''
             if dosnippets:
-                d['snippet'] = q.makedocabstract(doc, highlighter).encode('utf-8')
+                d['snippet'] = q.makedocabstract(doc, highlighter)
             results.append(d)
         except:
             break
@@ -127,5 +167,5 @@ def recoll_search(query, searchType, dir, sort, ascending, page, dosnippets=True
     return results, nres, tend - tstart
 
 
-def wrap_query(query, searchType):
-    return query_wraps[searchType - 1] % query
+def wrap_query(query, searchtype):
+    return query_wraps[searchtype - 1] % query
