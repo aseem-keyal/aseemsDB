@@ -2,8 +2,15 @@
 {% block title %} - Results{% endblock %}
 {% block content %}
 	{% include 'components/search.html' %}
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="found">
+				Found <span class="badge"><b>{{nres}}</b></span> matching: <b><i>{{qs}}</i></b>
+				<span class="gray">({{time}}s)</span>
+			</div>
+		</div>
+	</div>
 	{% include 'components/pages.html' %}
-	<p>{{ nres }} results in {{ time }} seconds</p>
 	{% for result in results %}
 		{% include 'components/result.html' %}
 	{% endfor %}

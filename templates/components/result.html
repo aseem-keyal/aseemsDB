@@ -1,6 +1,17 @@
-<div class="container">
-	<div class="well well-sm">
-		<a href="{{ result['url'] }}">{{ result['filename'] }}</a>
+<div class="well well-sm">
+	<h4>
+		{% set i = results.index(result) %}
+		{% set number = offset + i + 1 %}
+		<span class="badge">
+			<a href="#">#{{number}}</a>
+		</span>
+		<a href="{{ packet_href(result['url']) }}">{{ replace_underscores(result['filename']) }}</a>
+	</h4>
+	{% if 'author' in result and result['author']|length > 0 %}
+		<h5>{{ result['author'] }}</h5>
+	{% endif %}
+	<h5>{{ result['question_type'] | safe }} {{ render_set_name(result['url']) }}</h5>
+	{% if 'snippet' in result and result['snippet']|length > 0%}
 		<blockquote>{{result['snippet'] | safe}}</blockquote>
-	</div>
+	{% endif %}
 </div>

@@ -74,6 +74,7 @@ async def results(request: Request,
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
         page: Optional[int] = Query(1, ge=1)):
+    #results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=False)
     results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
@@ -81,14 +82,22 @@ async def results(request: Request,
                                                         "time": round(time.total_seconds(), 2),
                                                         "searchtype": searchtype,
                                                         "page": page,
+                                                        "qs": build_query_string(query, dir),
                                                         "pages": calculate_pages(nres, 25),
                                                         "page_href": render_page_link,
+                                                        "packet_href": render_packet_link,
+                                                        "render_set_name": render_set_name,
+                                                        "offset": calculate_offset(page, 25),
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
+                                                        "replace_underscores": replace_underscores,
                                                         "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
 
 # Helper methods
 query_wraps = ["\"%s\"l", "\"ANSWER: %s\"", "%s"]
+tossup_keywords = ["for 10 points", "for ten points", "ftp"]
+bonus_keywords = ["for 10 points each", "for ten points each", "ftpe"]
+
 def get_dirs(tops, depth):
     v = []
     for top in tops:
@@ -111,13 +120,22 @@ class HlMeths:
         return '</span>'
 
 def render_path(path):
-    return re.sub('.+/','', path).replace("_", " ")
+    return replace_underscores(re.sub('.+/','', path))
+
+def replace_underscores(filename):
+    return filename.replace("_", " ")
 
 def render_page_link(query, page):
     q = dict(query)
     q['page'] = page
     # TODO: extract 'results' out into a string variable
     return './results?%s' % urllib.parse.urlencode(q)
+
+def render_packet_link(filename):
+    return "." + filename[filename.find('/static'):]
+
+def render_set_name(filename):
+    return replace_underscores('/'.join(filename.rsplit('/',3)[1:-1]))
 
 def calculate_offset(page, per_page):
     return (page - 1) * per_page
@@ -151,6 +169,18 @@ def scroll_query(query, offset):
             query.scroll(offset, mode='absolute')
     return query
 
+def make_question_badge(snippet):
+    bonus_badge = '<span class="label label-info">Bonus</span>'
+    tossup_badge = '<span class="label label-primary">Tossup</span>'
+    if any(keyword in snippet for keyword in bonus_keywords):
+        return bonus_badge
+    elif any(keyword in snippet for keyword in tossup_keywords):
+        return tossup_badge
+    elif snippet.count(" 10 ") > 0:
+        return bonus_badge
+    else:
+        return tossup_badge
+
 def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
     query = wrap_query(query, searchtype)
     tstart = datetime.datetime.now()
@@ -173,6 +203,8 @@ def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True
                     d[f] = ''
             if dosnippets:
                 d['snippet'] = q.makedocabstract(doc, highlighter)
+                d['question_type'] = make_question_badge(d['snippet'])
+            print(d)
             results.append(d)
         except:
             break
