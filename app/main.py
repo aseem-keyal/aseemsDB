@@ -10,6 +10,7 @@ import glob
 import os
 import math
 import urllib
+import shlex
 
 try:
     from recoll import recoll
@@ -22,6 +23,18 @@ try:
     from recoll import rclconfig
 except:
     import rclconfig
+
+DEFAULTS = {
+    'context': 30,
+    'stem': 1,
+    'timefmt': '%c',
+    'dirdepth': 3,
+    'maxchars': 500,
+    'maxresults': 0,
+    'perpage': 25,
+    'csvfields': 'filename title author size time mtype url',
+    'title_link': 'download',
+}
 
 SORTS = [
     ("url", "Path"),
@@ -64,10 +77,11 @@ templates = Jinja2Templates(directory="templates")
 # API methods
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
+    config = get_config()
     return templates.TemplateResponse("main.html", {"request": request,
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
-                                                        "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
+                                                        "dirs": sorted_dirs(config["dirs"], config["dirdepth"])})
 
 @app.get("/results", response_class=HTMLResponse)
 async def results(request: Request, 
@@ -77,6 +91,7 @@ async def results(request: Request,
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
         page: Optional[int] = Query(1, ge=1)):
+    config = get_config()
     #results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=False)
     results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
@@ -86,20 +101,47 @@ async def results(request: Request,
                                                         "searchtype": searchtype,
                                                         "page": page,
                                                         "qs": build_query_string(wrap_query(query, searchtype), dir),
-                                                        "pages": calculate_pages(nres, 25),
+                                                        "pages": calculate_pages(nres, config['perpage']),
                                                         "page_href": render_page_link,
                                                         "packet_href": render_packet_link,
                                                         "render_set_name": render_set_name,
-                                                        "offset": calculate_offset(page, 25),
+                                                        "offset": calculate_offset(page, config['perpage']),
                                                         "sorts": SORTS,
+                                                        "ascending": ascending,
                                                         "render_path": render_path,
                                                         "replace_underscores": replace_underscores,
-                                                        "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
+                                                        "dirs": sorted_dirs(config['dirs'], config['dirdepth'])})
 
 # Helper methods
 query_wraps = ["\"%s\"l", "\"ANSWER: %s\"", "%s"]
 tossup_keywords = ["for 10 points", "for ten points", "ftp"]
 bonus_keywords = ["for 10 points each", "for ten points each", "ftpe"]
+
+def get_config():
+    config = {}
+    # get useful things from recoll.conf
+    rclconf = rclconfig.RclConfig()
+    config['confdir'] = rclconf.getConfDir()
+    config['dirs'] = [os.path.expanduser(d) for d in
+                      shlex.split(rclconf.getConfParam('topdirs'))]
+    config['stemlang'] = rclconf.getConfParam('indexstemminglanguages')
+    # get config from cookies or defaults
+    for k, v in DEFAULTS.items():
+        #value = select([bottle.request.get_cookie(k), v])
+        #config[k] = type(v)(value)
+        config[k] = v
+    # Fix csvfields: get rid of invalid ones to avoid needing tests in the dump function
+    cf = config['csvfields'].split()
+    ncf = [f for f in cf if f in FIELDS]
+    config['csvfields'] = ' '.join(ncf)
+    config['fields'] = ' '.join(FIELDS)
+    # get mountpoints
+    config['mounts'] = {}
+    for d in config['dirs']:
+    #    name = 'mount_%s' % urllib.parse.quote(d,'')
+    #    config['mounts'][d] = select([bottle.request.get_cookie(name), 'aseemsdb.me%s' % d], [None, ''])
+        config['mounts'][d] = 'aseemsdb.me%s' % d
+    return config
 
 def get_dirs(tops, depth):
     v = []
@@ -186,16 +228,17 @@ def make_question_badge(snippet):
         return tossup_badge
 
 def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
+    config = get_config()
     query = wrap_query(query, searchtype)
     tstart = datetime.datetime.now()
     q = recoll_initsearch(query, dir, sort, ascending)
     nres = q.rowcount
 
-    offset = calculate_offset(page, 25)
+    offset = calculate_offset(page, config['perpage'])
     q = scroll_query(q, offset)
     highlighter = HlMeths()
     results = []
-    for i in range(25):
+    for i in range(config['perpage']):
         try:
             doc = q.fetchone()
             d = {}
