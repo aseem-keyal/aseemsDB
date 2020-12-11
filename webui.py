@@ -163,9 +163,12 @@ def get_query():
 #{{{ query_to_recoll_string
 def query_to_recoll_string(q):
     qs = q['query'].decode('utf-8')
+    searchtype = q['searchtype']
     qs = qs.replace("\\", "")
     qs = qs.replace("\'", " ")
     qs = qs.replace(".", "")
+    if searchtype != 3:
+        qs = qs.replace("?", "")
     if len(q['after']) > 0 or len(q['before']) > 0:
         qs += " date:%s/%s" % (q['after'], q['before'])
     if q['dir'] != '<all>':
