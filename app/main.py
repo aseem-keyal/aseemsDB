@@ -93,7 +93,7 @@ async def results(request: Request,
         page: Optional[int] = Query(1, ge=1)):
     config = get_config()
     #results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=False)
-    results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page)
+    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
                                                         "nres": nres,
@@ -189,6 +189,7 @@ def calculate_pages(nres, per_page):
     return int(math.ceil(nres/float(per_page)))
 
 def build_query_string(query, dir):
+    # TODO: strip out ? modifier if not searchtype 3
     qs = query
     qs = qs.replace("\\", "")
     qs = qs.replace("\'", " ")
@@ -227,7 +228,7 @@ def make_question_badge(snippet):
     else:
         return tossup_badge
 
-def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
+async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
     config = get_config()
     query = wrap_query(query, searchtype)
     tstart = datetime.datetime.now()
