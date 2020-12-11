@@ -64,7 +64,10 @@ templates = Jinja2Templates(directory="templates")
 # API methods
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
-    return templates.TemplateResponse("main.html", {"request": request})
+    return templates.TemplateResponse("main.html", {"request": request,
+                                                        "sorts": SORTS,
+                                                        "render_path": render_path,
+                                                        "dirs": sorted_dirs(["/home/aseem/Documents/aseemsDB/fastapi-rewrite/static/packet_archive/"], 2)})
 
 @app.get("/results", response_class=HTMLResponse)
 async def results(request: Request, 
