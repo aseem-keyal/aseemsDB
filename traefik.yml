@@ -87,10 +87,12 @@ services:
 
   aseemsdb: # <== we aren't going to open :80 here because traefik is going to serve this on entrypoint 'web'
   ## :80 is already exposed from within the container ##
-    image: aseemsdb:1.0
+    image: aseemsdb:latest
     volumes:
       # here is where the folder that contains the packets is mounted
       - ../packet_archive:/app/static/packet_archive
+      # here is where the folder that contains the recoll config is mounted
+      - ../recollconf:/root/.recoll
     networks:
       - traefik-public
     deploy:

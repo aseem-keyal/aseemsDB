@@ -1,1 +1,3 @@
 app/static/packet_archive/*
+*__pycache__*
+*.swp
