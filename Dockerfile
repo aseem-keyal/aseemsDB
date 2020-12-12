@@ -1,5 +1,6 @@
-FROM debian:buster-slim
+FROM ubuntu:21.04
 
+ENV DEBIAN_FRONTEND="noninteractive" TZ="America/New_York"
 RUN apt-get update && apt-get install -y \
 	python3-pip \
 	python3-recoll \
@@ -15,7 +16,8 @@ COPY ./recoll.conf /root/.recoll/recoll.conf
 
 
 COPY ./app /app
-RUN recollindex
+RUN mkdir /app/static/packet_archive
+VOLUME /app/static/packet_archive
 WORKDIR /app/
 
 ENV PYTHONPATH=/app
