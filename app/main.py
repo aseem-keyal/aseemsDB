@@ -176,8 +176,8 @@ def render_page_link(query, page):
     # TODO: extract 'results' out into a string variable
     return './results?%s' % urllib.parse.urlencode(q)
 
-def render_packet_link(filename):
-    return "." + filename[filename.find('/static'):]
+def render_packet_link(filename, page=1):
+    return "." + filename[filename.find('/static'):] + "#page=" + str(page)
 
 def render_set_name(filename):
     return replace_underscores('/'.join(filename.rsplit('/',3)[1:-1]))
@@ -228,6 +228,11 @@ def make_question_badge(snippet):
     else:
         return tossup_badge
 
+def get_page_num(snippet):
+    if len(re.findall(r'\d+', snippet)) > 0:
+        return re.findall(r'\d+', snippet)[0]
+    return 1
+
 async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
     config = get_config()
     query = wrap_query(query, searchtype)
@@ -251,6 +256,7 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
                     d[f] = ''
             if dosnippets:
                 d['snippet'] = q.makedocabstract(doc, highlighter)
+                d['page_num'] = get_page_num(d['snippet'])
                 d['question_type'] = make_question_badge(d['snippet'])
             results.append(d)
         except:
