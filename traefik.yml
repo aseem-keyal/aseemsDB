@@ -101,10 +101,10 @@ services:
               - "traefik.enable=true" # <== Enable traefik to proxy this container
               - "traefik.docker.network=traefik-public"
               - "traefik.constraint-label=traefik-public"
-              - "traefik.http.routers.aseemsdb-http.rule=Host(`testing.aseemsdb.me`)" # <== Your Domain Name goes here for the http rule
+              - "traefik.http.routers.aseemsdb-http.rule=Host(`${ASEEMSDB_DOMAIN?Variable not set}`)" # <== Your Domain Name goes here for the http rule
               - "traefik.http.routers.aseemsdb-http.entrypoints=http" # <== Defining the entrypoint for http, **ref: line 30
               - "traefik.http.routers.aseemsdb-http.middlewares=https-redirect" # <== This is a middleware to redirect to https
-              - "traefik.http.routers.aseemsdb-https.rule=Host(`testing.aseemsdb.me`)" # <== Your Domain Name for the https rule 
+              - "traefik.http.routers.aseemsdb-https.rule=Host(`${ASEEMSDB_DOMAIN?Variable not set}`)" # <== Your Domain Name for the https rule 
               - "traefik.http.routers.aseemsdb-https.entrypoints=https" # <== Defining entrypoint for https, **ref: line 31
               - "traefik.http.routers.aseemsdb-https.tls=true" # <== Defining certsresolvers for https
               - "traefik.http.routers.aseemsdb-https.tls.certresolver=le" # <== Defining certsresolvers for https
