@@ -16,6 +16,7 @@ RUN chmod +x /start.sh
 
 VOLUME /root/.recoll/
 COPY ./gunicorn_conf.py /gunicorn_conf.py
+COPY ./recoll.conf /recoll.conf
 
 COPY ./app /app
 RUN mkdir /app/static/packet_archive
