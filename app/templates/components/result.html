@@ -6,6 +6,7 @@
 			<a href="#">#{{number}}</a>
 		</span>
 		<a href="{{ packet_href(result['url'], result['page_num']) }}">{{ replace_underscores(result['filename']) }}</a>
+		<a style="color: #666; float:right" href="{{ preview_href(i, request.query_params) }}" target="_blank">Preview</a>
 	</h4>
 	{% if 'author' in result and result['author']|length > 0 %}
 		<h5>{{ result['author'] }}</h5>

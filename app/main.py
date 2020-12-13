@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Request, Query
+from fastapi import FastAPI, Request, Query, Path
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -83,6 +83,21 @@ async def main(request: Request):
                                                         "render_path": render_path,
                                                         "dirs": sorted_dirs(config["dirs"], config["dirdepth"])})
 
+
+@app.get("/preview/{resnum}", response_class=HTMLResponse)
+async def preview(request: Request, 
+        query: str,
+        resnum: int = Path(..., title="The ID of the result to get", ge=0),
+        searchtype: Optional[int] = Query(1, ge=1, le=3),
+        dir: Optional[str] = "<all>",
+        sort: Optional[str] = "url",
+        ascending: Optional[int] = Query(0, ge=0, le=1),
+        page: Optional[int] = Query(1, ge=1)):
+    config = get_config()
+    packet_text = await recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page)
+    return templates.TemplateResponse("preview.html", {"request": request, 
+                                                        "packet_text": packet_text})
+
 @app.get("/results", response_class=HTMLResponse)
 async def results(request: Request, 
         query: str,
@@ -104,6 +119,7 @@ async def results(request: Request,
                                                         "pages": calculate_pages(nres, config['perpage']),
                                                         "page_href": render_page_link,
                                                         "packet_href": render_packet_link,
+                                                        "preview_href": render_preview_link,
                                                         "render_set_name": render_set_name,
                                                         "offset": calculate_offset(page, config['perpage']),
                                                         "sorts": SORTS,
@@ -166,6 +182,10 @@ class HlMeths:
 
 def render_path(path):
     return replace_underscores(re.sub('.+/','', path))
+
+def render_preview_link(resnum, params):
+    # TODO: extract 'preview' out into a string variable
+    return "./preview/" + str(resnum) + "?%s" % urllib.parse.urlencode(params)
 
 def replace_underscores(filename):
     return filename.replace("_", " ")
@@ -265,6 +285,19 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
     tend = datetime.datetime.now()
     return results, nres, tend - tstart
 
+async def recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page):
+    if not hasrclextract:
+        return 'Sorry, needs recoll version 1.19 or later'
+    config = get_config()
+    query = wrap_query(query, searchtype)
+    q = recoll_initsearch(query, dir, sort, ascending)
+    if resnum > q.rowcount - 1:
+        return 'Bad result index %d' % resnum
+    q.scroll(resnum)
+    doc = q.fetchone()
+    xt = rclextract.Extractor(doc)
+    tdoc = xt.textextract(doc.ipath)
+    return tdoc.text
 
 def wrap_query(query, searchtype):
     return query_wraps[searchtype - 1] % query
