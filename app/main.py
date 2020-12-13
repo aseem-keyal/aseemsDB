@@ -81,6 +81,7 @@ async def main(request: Request):
     return templates.TemplateResponse("main.html", {"request": request,
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
+                                                        "snippets": 1,
                                                         "dirs": sorted_dirs(config["dirs"], config["dirdepth"])})
 
 
@@ -105,10 +106,12 @@ async def results(request: Request,
         dir: Optional[str] = "<all>",
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
+        snippets: Optional[bool] = False,
         page: Optional[int] = Query(1, ge=1)):
     config = get_config()
-    #results, nres, time = recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=False)
-    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
+    print(snippets)
+    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=snippets)
+    #results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
                                                         "nres": nres,
@@ -123,6 +126,7 @@ async def results(request: Request,
                                                         "render_set_name": render_set_name,
                                                         "offset": calculate_offset(page, config['perpage']),
                                                         "sorts": SORTS,
+                                                        "snippets": snippets,
                                                         "ascending": ascending,
                                                         "render_path": render_path,
                                                         "replace_underscores": replace_underscores,

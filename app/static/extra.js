@@ -5,6 +5,12 @@ $(document).ready(function(){
 		$("#fade").fadeIn("slow")
 	})
 	if ($("#results").length) { $("input").blur() }
-	$('input[name="after"]').jdPicker({});
-	$('input[name="before"]').jdPicker();
-})
+});
+
+$( document ).ready(function() {
+    $('#typeahead').typeahead({
+	name: 'answerLines',
+	prefetch: '/static/answerLines_HS.json',
+	limit: 5
+    });
+});
