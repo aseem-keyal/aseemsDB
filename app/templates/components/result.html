@@ -5,7 +5,7 @@
 		<span class="badge">
 			<a href="#">#{{number}}</a>
 		</span>
-		<a href="{{ packet_href(result['url'], result['page_num']) }}">{{ replace_underscores(result['filename']) }}</a>
+		<a href="{{ packet_href(result['url'], result['page_num']) }}">{{ render_packet_name(result['filename']) }}</a>
 	</h4>
 	{% if 'author' in result and result['author']|length > 0 %}
 		<h5>{{ result['author'] }}</h5>

@@ -95,8 +95,9 @@ async def preview(request: Request,
         ascending: Optional[int] = Query(0, ge=0, le=1),
         page: Optional[int] = Query(1, ge=1)):
     config = get_config()
-    packet_text = await recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page)
+    packet_text, filename = await recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("preview.html", {"request": request, 
+                                                        "filename": filename,
                                                         "packet_text": packet_text})
 
 @app.get("/results", response_class=HTMLResponse)
@@ -129,7 +130,7 @@ async def results(request: Request,
                                                         "snippets": snippets,
                                                         "ascending": ascending,
                                                         "render_path": render_path,
-                                                        "replace_underscores": replace_underscores,
+                                                        "render_packet_name": render_packet_name,
                                                         "dirs": sorted_dirs(config['dirs'], config['dirdepth'])})
 
 # Helper methods
@@ -193,6 +194,12 @@ def render_preview_link(resnum, params):
 
 def replace_underscores(filename):
     return filename.replace("_", " ")
+
+def replace_pdf_ext(filename):
+    return filename.replace(".pdf", "")
+
+def render_packet_name(filename):
+    return replace_pdf_ext(replace_underscores(filename))
 
 def render_page_link(query, page):
     q = dict(query)
@@ -301,7 +308,7 @@ async def recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, pa
     doc = q.fetchone()
     xt = rclextract.Extractor(doc)
     tdoc = xt.textextract(doc.ipath)
-    return tdoc.text
+    return tdoc.text, render_packet_name(doc.filename)
 
 def wrap_query(query, searchtype):
     return query_wraps[searchtype - 1] % query

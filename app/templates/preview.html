@@ -1,10 +1,7 @@
 {% extends "base.html" %}
-{% block title %} Preview {% endblock %}
+{% block title %} - Preview ({{ filename }}){% endblock %}
 {% block head %}
-    <link rel="stylesheet" href="../static/bootstrap.min.css" />
-    <link rel="stylesheet" href="../static/examples.css" />
-    <link rel="stylesheet" href="../static/style.css" />
-    <link rel="stylesheet" href="../static/theme.css" />
+    {{ super() }}
     <style>
 	pre {
 	  color: black;
