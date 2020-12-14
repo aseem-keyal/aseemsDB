@@ -1,5 +1,5 @@
 from typing import Optional
-from fastapi import FastAPI, Request, Query, Path
+from fastapi import FastAPI, Request, Query, Path, Response
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -11,6 +11,11 @@ import os
 import math
 import urllib
 import shlex
+import hashlib
+import string
+import json
+import csv
+import io
 
 try:
     from recoll import recoll
@@ -85,6 +90,14 @@ async def main(request: Request):
                                                         "dirs": sorted_dirs(config["dirs"], config["dirdepth"])})
 
 
+@app.get("/faq", response_class=HTMLResponse)
+async def faq(request: Request):
+    return templates.TemplateResponse("faq.html", {"request": request})
+
+@app.get("/about", response_class=HTMLResponse)
+async def about(request: Request):
+    return templates.TemplateResponse("about.html", {"request": request})
+
 @app.get("/preview/{resnum}", response_class=HTMLResponse)
 async def preview(request: Request, 
         query: str,
@@ -100,6 +113,46 @@ async def preview(request: Request,
                                                         "filename": filename,
                                                         "packet_text": packet_text})
 
+@app.get("/json")
+async def get_json(request: Request, 
+        response: Response,
+        query: str,
+        searchtype: Optional[int] = Query(1, ge=1, le=3),
+        dir: Optional[str] = "<all>",
+        sort: Optional[str] = "url",
+        ascending: Optional[int] = Query(0, ge=0, le=1)):
+    qs = build_query_string(wrap_query(query, searchtype), dir)
+    response.headers['Content-Type'] = 'application/json'
+    response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.json' % normalise_filename(qs)
+    res, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, 0, dosnippets=True)
+    print(dict(request.query_params))
+    return json.dumps({ 'query': dict(request.query_params), 'results': res })
+
+@app.get("/csv")
+async def get_csv(request: Request, 
+        response: Response,
+        query: str,
+        searchtype: Optional[int] = Query(1, ge=1, le=3),
+        dir: Optional[str] = "<all>",
+        sort: Optional[str] = "url",
+        ascending: Optional[int] = Query(0, ge=0, le=1)):
+    qs = build_query_string(wrap_query(query, searchtype), dir)
+    config = get_config()
+    res, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, 0, dosnippets=False)
+    response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.csv' % normalise_filename(qs)
+    
+    si = io.StringIO()
+    cw = csv.writer(si)
+    fields = config['csvfields'].split()
+    cw.writerow(fields)
+    for doc in res:
+        row = []
+        for f in fields:
+            row.append(doc[f])
+        cw.writerow(row)
+    data = si.getvalue().strip("\r\n")
+    return data
+
 @app.get("/results", response_class=HTMLResponse)
 async def results(request: Request, 
         query: str,
@@ -110,7 +163,6 @@ async def results(request: Request,
         snippets: Optional[bool] = False,
         page: Optional[int] = Query(1, ge=1)):
     config = get_config()
-    print(snippets)
     results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=snippets)
     #results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
@@ -123,6 +175,7 @@ async def results(request: Request,
                                                         "pages": calculate_pages(nres, config['perpage']),
                                                         "page_href": render_page_link,
                                                         "packet_href": render_packet_link,
+                                                        "set_href": render_set_link,
                                                         "preview_href": render_preview_link,
                                                         "render_set_name": render_set_name,
                                                         "offset": calculate_offset(page, config['perpage']),
@@ -130,6 +183,7 @@ async def results(request: Request,
                                                         "snippets": snippets,
                                                         "ascending": ascending,
                                                         "render_path": render_path,
+                                                        "render_link_params": render_link_params,
                                                         "render_packet_name": render_packet_name,
                                                         "dirs": sorted_dirs(config['dirs'], config['dirdepth'])})
 
@@ -176,6 +230,16 @@ def get_dirs(tops, depth):
         v = v + dirs
     return ['<all>'] + v
 
+def normalise_filename(fn):
+    valid_chars = "_-%s%s" % (string.ascii_letters, string.digits)
+    out = ""
+    for i in range(0,len(fn)):
+        if fn[i] in valid_chars:
+            out += fn[i]
+        else:
+            out += "_"
+    return out
+
 def sorted_dirs(tops, depth):
     return filter(None, sorted(get_dirs(tops, depth), key=lambda p: (p.count(os.path.sep), p)))
 
@@ -188,9 +252,12 @@ class HlMeths:
 def render_path(path):
     return replace_underscores(re.sub('.+/','', path))
 
+def render_link_params(path, params):
+    return path % urllib.parse.urlencode(params)
+
 def render_preview_link(resnum, params):
     # TODO: extract 'preview' out into a string variable
-    return "./preview/" + str(resnum) + "?%s" % urllib.parse.urlencode(params)
+    return render_link_params("./preview/" + str(resnum) + "?%s", params)
 
 def replace_underscores(filename):
     return filename.replace("_", " ")
@@ -209,6 +276,13 @@ def render_page_link(query, page):
 
 def render_packet_link(filename, page=1):
     return "." + filename[filename.find('/static'):] + "#page=" + str(page)
+
+def render_set_link(filename):
+    q = {}
+    q['dir'] = "/".join(filename.rsplit('/',3)[1:-1])
+    q['query'] = "the"
+    q['snippets'] = 1
+    return './results?%s' % urllib.parse.urlencode(q)
 
 def render_set_name(filename):
     return replace_underscores('/'.join(filename.rsplit('/',3)[1:-1]))
@@ -271,6 +345,14 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
     q = recoll_initsearch(query, dir, sort, ascending)
     nres = q.rowcount
 
+    if config['maxresults'] == 0:
+        config['maxresults'] = nres
+    if nres > config['maxresults']:
+        nres = config['maxresults']
+    if config['perpage'] == 0 or page == 0:
+        config['perpage'] = nres
+        page = 1
+
     offset = calculate_offset(page, config['perpage'])
     q = scroll_query(q, offset)
     highlighter = HlMeths()
@@ -285,6 +367,7 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
                     d[f] = v
                 else:
                     d[f] = ''
+            d['sha'] = hashlib.sha1((d['url']+d['ipath']).encode('utf-8')).hexdigest()
             if dosnippets:
                 d['snippet'] = q.makedocabstract(doc, highlighter)
                 d['page_num'] = get_page_num(d['snippet'])
