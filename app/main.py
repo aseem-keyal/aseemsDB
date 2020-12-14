@@ -34,7 +34,7 @@ DEFAULTS = {
     'stem': 1,
     'timefmt': '%c',
     'dirdepth': 3,
-    'maxchars': 500,
+    'maxchars': 200,
     'maxresults': 0,
     'perpage': 25,
     'csvfields': 'filename title author size time mtype url',
@@ -304,8 +304,9 @@ def build_query_string(query, dir):
     return qs
 
 def recoll_initsearch(query, dir, sort, ascending):
+    config = get_config()
     db = recoll.connect()
-    db.setAbstractParams(200, 30)
+    db.setAbstractParams(config['maxchars'], config['context'])
     q = db.query()
     q.sortby(sort, ascending)
     qs = build_query_string(query, dir)
@@ -394,4 +395,6 @@ async def recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, pa
     return tdoc.text, render_packet_name(doc.filename)
 
 def wrap_query(query, searchtype):
+    if searchtype < 3:
+        query = query.replace("?", "")
     return query_wraps[searchtype - 1] % query
