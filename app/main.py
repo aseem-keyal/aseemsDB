@@ -86,7 +86,7 @@ async def main(request: Request):
     return templates.TemplateResponse("main.html", {"request": request,
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
-                                                        "snippets": 1,
+                                                        "nosnippets": 0,
                                                         "dirs": sorted_dirs(config["dirs"], config["dirdepth"])})
 
 
@@ -160,10 +160,10 @@ async def results(request: Request,
         dir: Optional[str] = "<all>",
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
-        snippets: Optional[bool] = False,
+        nosnippets: Optional[bool] = False,
         page: Optional[int] = Query(1, ge=1)):
     config = get_config()
-    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=snippets)
+    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=not nosnippets)
     #results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
@@ -180,7 +180,7 @@ async def results(request: Request,
                                                         "render_set_name": render_set_name,
                                                         "offset": calculate_offset(page, config['perpage']),
                                                         "sorts": SORTS,
-                                                        "snippets": snippets,
+                                                        "nosnippets": nosnippets,
                                                         "ascending": ascending,
                                                         "render_path": render_path,
                                                         "render_link_params": render_link_params,
@@ -280,8 +280,8 @@ def render_packet_link(filename, page=1):
 def render_set_link(filename):
     q = {}
     q['dir'] = "/".join(filename.rsplit('/',3)[1:-1])
-    q['query'] = "the"
-    q['snippets'] = 1
+    q['query'] = ""
+    q['searchtype'] = 3
     return './results?%s' % urllib.parse.urlencode(q)
 
 def render_set_name(filename):
