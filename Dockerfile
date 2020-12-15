@@ -14,6 +14,9 @@ RUN pip3 install --no-cache-dir uvicorn gunicorn fastapi jinja2 aiofiles uvloop 
 COPY ./start.sh /start.sh
 RUN chmod +x /start.sh
 
+COPY ./start-reload.sh /start-reload.sh
+RUN chmod +x /start-reload.sh
+
 VOLUME /root/.recoll/
 COPY ./gunicorn_conf.py /gunicorn_conf.py
 COPY ./recoll.conf /recoll.conf

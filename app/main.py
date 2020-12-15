@@ -1,6 +1,6 @@
 from typing import Optional
 from fastapi import FastAPI, Request, Query, Path, Response
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -16,6 +16,7 @@ import string
 import json
 import csv
 import io
+import pathlib
 
 try:
     from recoll import recoll
@@ -40,6 +41,8 @@ DEFAULTS = {
     'csvfields': 'filename title author size time mtype url',
     'title_link': 'download',
 }
+
+available_settings = ["stem", "maxresults", "perpage", "context", "maxchars", "csvfields"]
 
 SORTS = [
     ("url", "Path"),
@@ -82,7 +85,7 @@ templates = Jinja2Templates(directory="templates")
 # API methods
 @app.get("/", response_class=HTMLResponse)
 async def main(request: Request):
-    config = get_config()
+    config = get_config(request)
     return templates.TemplateResponse("main.html", {"request": request,
                                                         "sorts": SORTS,
                                                         "render_path": render_path,
@@ -98,6 +101,30 @@ async def faq(request: Request):
 async def about(request: Request):
     return templates.TemplateResponse("about.html", {"request": request})
 
+@app.get("/settings", response_class=HTMLResponse)
+async def settings(request: Request):
+    config = get_config(request)
+    return templates.TemplateResponse("settings.html", {"request": request,
+                                                        "config": config})
+
+@app.get("/set")
+async def set(request: Request,
+        stem: Optional[int] = Query(DEFAULTS['stem'], ge=0, le=1),
+        maxresults: Optional[int] = Query(DEFAULTS['maxresults'], ge=0),
+        perpage: Optional[int] = Query(DEFAULTS['perpage'], ge=0),
+        context: Optional[int] = Query(DEFAULTS['context'], ge=0),
+        maxchars: Optional[int] = Query(DEFAULTS['maxchars'], ge=0),
+        csvfields: Optional[str] = DEFAULTS['csvfields']):
+    response = RedirectResponse(url='/')
+    for setting in available_settings:
+        response.set_cookie(setting, request.query_params[setting], max_age=315360000, expires=315360000)
+    return response               
+
+@app.get("/osd.xml")
+async def get_osd(request: Request):
+    osd_xml = pathlib.Path('./templates/osd.xml').read_text()
+    return Response(content=osd_xml, media_type="application/xml")                                    
+
 @app.get("/preview/{resnum}", response_class=HTMLResponse)
 async def preview(request: Request, 
         query: str,
@@ -107,8 +134,8 @@ async def preview(request: Request,
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1),
         page: Optional[int] = Query(1, ge=1)):
-    config = get_config()
-    packet_text, filename = await recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page)
+    config = get_config(request)
+    packet_text, filename = await recoll_packet_text(config, resnum, query, searchtype, dir, sort, ascending, page)
     return templates.TemplateResponse("preview.html", {"request": request, 
                                                         "filename": filename,
                                                         "packet_text": packet_text})
@@ -121,10 +148,11 @@ async def get_json(request: Request,
         dir: Optional[str] = "<all>",
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1)):
+    config = get_config(request)
     qs = build_query_string(wrap_query(query, searchtype), dir)
     response.headers['Content-Type'] = 'application/json'
     response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.json' % normalise_filename(qs)
-    res, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, 0, dosnippets=True)
+    res, *_ = await recoll_search(config, query, searchtype, dir, sort, ascending, 0, dosnippets=True)
     print(dict(request.query_params))
     return json.dumps({ 'query': dict(request.query_params), 'results': res })
 
@@ -137,8 +165,8 @@ async def get_csv(request: Request,
         sort: Optional[str] = "url",
         ascending: Optional[int] = Query(0, ge=0, le=1)):
     qs = build_query_string(wrap_query(query, searchtype), dir)
-    config = get_config()
-    res, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, 0, dosnippets=False)
+    config = get_config(request)
+    res, *_ = await recoll_search(config, query, searchtype, dir, sort, ascending, 0, dosnippets=False)
     response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.csv' % normalise_filename(qs)
     
     si = io.StringIO()
@@ -162,9 +190,8 @@ async def results(request: Request,
         ascending: Optional[int] = Query(0, ge=0, le=1),
         nosnippets: Optional[bool] = False,
         page: Optional[int] = Query(1, ge=1)):
-    config = get_config()
-    results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=not nosnippets)
-    #results, nres, time = await recoll_search(query, searchtype, dir, sort, ascending, page)
+    config = get_config(request)
+    results, nres, time = await recoll_search(config, query, searchtype, dir, sort, ascending, page, dosnippets=not nosnippets)
     return templates.TemplateResponse("results.html", {"request": request, 
                                                         "results": results,
                                                         "nres": nres,
@@ -192,7 +219,7 @@ query_wraps = ["\"%s\"l", "\"ANSWER: %s\"", "%s"]
 tossup_keywords = ["for 10 points", "for ten points", "ftp"]
 bonus_keywords = ["for 10 points each", "for ten points each", "ftpe"]
 
-def get_config():
+def get_config(request):
     config = {}
     # get useful things from recoll.conf
     rclconf = rclconfig.RclConfig()
@@ -202,9 +229,10 @@ def get_config():
     config['stemlang'] = rclconf.getConfParam('indexstemminglanguages')
     # get config from cookies or defaults
     for k, v in DEFAULTS.items():
-        #value = select([bottle.request.get_cookie(k), v])
-        #config[k] = type(v)(value)
-        config[k] = v
+        if k in available_settings and k in request.cookies:
+            config[k] = type(v)(request.cookies.get(k))
+        else:
+            config[k] = v
     # Fix csvfields: get rid of invalid ones to avoid needing tests in the dump function
     cf = config['csvfields'].split()
     ncf = [f for f in cf if f in FIELDS]
@@ -213,8 +241,6 @@ def get_config():
     # get mountpoints
     config['mounts'] = {}
     for d in config['dirs']:
-    #    name = 'mount_%s' % urllib.parse.quote(d,'')
-    #    config['mounts'][d] = select([bottle.request.get_cookie(name), 'aseemsdb.me%s' % d], [None, ''])
         config['mounts'][d] = 'aseemsdb.me%s' % d
     return config
 
@@ -303,14 +329,13 @@ def build_query_string(query, dir):
         qs += " dir:\"%s\" " % dir 
     return qs
 
-def recoll_initsearch(query, dir, sort, ascending):
-    config = get_config()
+def recoll_initsearch(config, query, dir, sort, ascending):
     db = recoll.connect()
     db.setAbstractParams(config['maxchars'], config['context'])
     q = db.query()
     q.sortby(sort, ascending)
     qs = build_query_string(query, dir)
-    nres = q.execute(qs)
+    q.execute(qs, config['stem'], config['stemlang'])
     return q
 
 def scroll_query(query, offset):
@@ -339,11 +364,10 @@ def get_page_num(snippet):
         return re.findall(r'\d+', snippet)[0]
     return 1
 
-async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippets=True):
-    config = get_config()
+async def recoll_search(config, query, searchtype, dir, sort, ascending, page, dosnippets=True):
     query = wrap_query(query, searchtype)
     tstart = datetime.datetime.now()
-    q = recoll_initsearch(query, dir, sort, ascending)
+    q = recoll_initsearch(config, query, dir, sort, ascending)
     nres = q.rowcount
 
     if config['maxresults'] == 0:
@@ -358,7 +382,7 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
     q = scroll_query(q, offset)
     highlighter = HlMeths()
     results = []
-    for i in range(config['perpage']):
+    for _ in range(config['perpage']):
         try:
             doc = q.fetchone()
             d = {}
@@ -380,12 +404,11 @@ async def recoll_search(query, searchtype, dir, sort, ascending, page, dosnippet
     tend = datetime.datetime.now()
     return results, nres, tend - tstart
 
-async def recoll_packet_text(resnum, query, searchtype, dir, sort, ascending, page):
+async def recoll_packet_text(config, resnum, query, searchtype, dir, sort, ascending, page):
     if not hasrclextract:
         return 'Sorry, needs recoll version 1.19 or later'
-    config = get_config()
     query = wrap_query(query, searchtype)
-    q = recoll_initsearch(query, dir, sort, ascending)
+    q = recoll_initsearch(config, query, dir, sort, ascending)
     if resnum > q.rowcount - 1:
         return 'Bad result index %d' % resnum
     q.scroll(resnum)
