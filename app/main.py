@@ -30,6 +30,9 @@ try:
 except:
     import rclconfig
 
+MAX_API_RESULTS_WITH_SNIPPETS = 200
+MAX_API_RESULTS_WITHOUT_SNIPPETS = 500
+
 DEFAULTS = {
     'context': 30,
     'stem': 1,
@@ -111,7 +114,7 @@ async def settings(request: Request):
 async def set(request: Request,
         stem: Optional[int] = Query(DEFAULTS['stem'], ge=0, le=1),
         maxresults: Optional[int] = Query(DEFAULTS['maxresults'], ge=0),
-        perpage: Optional[int] = Query(DEFAULTS['perpage'], ge=0),
+        perpage: Optional[int] = Query(DEFAULTS['perpage'], ge=10, le=50),
         context: Optional[int] = Query(DEFAULTS['context'], ge=0),
         maxchars: Optional[int] = Query(DEFAULTS['maxchars'], ge=0),
         csvfields: Optional[str] = DEFAULTS['csvfields']):
@@ -354,7 +357,7 @@ def make_question_badge(snippet):
         return bonus_badge
     elif any(keyword in snippet for keyword in tossup_keywords):
         return tossup_badge
-    elif snippet.count(" [10] ") > 0:
+    elif snippet.count("[10]") > 0:
         return bonus_badge
     else:
         return tossup_badge
@@ -374,8 +377,11 @@ async def recoll_search(config, query, searchtype, dir, sort, ascending, page, d
         config['maxresults'] = nres
     if nres > config['maxresults']:
         nres = config['maxresults']
-    if config['perpage'] == 0 or page == 0:
-        config['perpage'] = nres
+    if page == 0:
+        if dosnippets:
+            config['perpage'] = min(nres, MAX_API_RESULTS_WITH_SNIPPETS)
+        else:
+            config['perpage'] = min(nres, MAX_API_RESULTS_WITHOUT_SNIPPETS)
         page = 1
 
     offset = calculate_offset(page, config['perpage'])
