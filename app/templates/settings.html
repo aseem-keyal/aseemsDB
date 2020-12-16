@@ -1,67 +1,89 @@
 {% extends "base.html" %}
 {% block title %}: Settings{% endblock %}
 {% block content %}
-<div class="well">
-    <form action="set" method="get">
-        <fieldset>
-            <legend>Settings</legend>
-            <div class="form-group">
-                <label for="stem" class="col-lg-2 control-label">
-                    Stemming <small class="gray">(1 or 0, show "squats" and "squatter")</small>
-                </label>
-                <div class="col-lg-10">
-                    <input id="stem" name="stem" type="text" class="form-control" value={{config['stem']}}>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="maxresults" class="col-lg-2 control-label">
-                    Max results <small class="gray">(maximum number of results to show)</small>
-                </label>
-                <div class="col-lg-10">
-                    <input id="maxresults" name="maxresults" type="text" class="form-control" value={{config['maxresults']}}>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="perpage" class="col-lg-2 control-label">
-                    Results per page <small class="gray">(between 10 and 50)</small>
-                </label>
-                <div class="col-lg-10">
-                    <input id="perpage" name="perpage" type="text" class="form-control" value={{config['perpage']}}>
-                </div>
-            </div>
-            
-            <div class="form-group">
-                <label for="context" class="col-lg-2 control-label">
-                    Context words <small class="gray">(number of words shown in search results)</small>
-                </label>
-                <div class="col-lg-10">
-                    <input id="context" name="context" type="text" class="form-control" value={{config['context']}}>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="maxchars" class="col-lg-2 control-label">
-                    Context characters <small class="gray">(max characters in a snippet)</small>
-                </label>
-                <div class="col-lg-10">
-                    <input id="maxchars" name="maxchars" type="text" class="form-control" value={{config['maxchars']}}>
-                </div>
-            </div>
-
-            <div class="form-group">
-                <label for="csvfields" class="col-lg-2 control-label">
-                    CSV fields <small class="gray">({{fields}})</small><br>
-                </label>
-                <div class="col-lg-10">
-                    <input id="csvfields" name="csvfields" type="text" class="form-control" value="{{config['csvfields']}}">
-                </div>
-            </div>
-
-            <button type="submit" class="btn btn-primary">Save</button>
-            <a href="./" class="btn btn-default">Cancel</a>
-        </fieldset>
-    </form>
+<div class="row">
+    <div class="col-lg-8 col-lg-offset-2">
+        <div class="well">
+            <form action="set" method="get" class="form-horizontal">
+                <fieldset>
+                    <legend>Settings</legend>
+                    <div class="form-group">
+                        <label for="stem" class="col-lg-4 control-label">
+                            Stemming
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="stem" name="stem" type="text" class="form-control" value="{{config['stem']}}">
+                        </div>
+                        <div class="col-lg-6 col-lg-offset-4">
+                            <small id="emailHelp" class="form-text text-muted">(1 or 0, show "squats" and "squatter")</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="maxresults" class="col-lg-4 control-label">
+                            Max results
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="maxresults" name="maxresults" type="text" class="form-control" value="{{config['maxresults']}}">
+                        </div>
+                        <div class="col-lg-6 col-lg-offset-4">
+                            <small id="emailHelp" class="form-text text-muted">(maximum number of results to show)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="perpage" class="col-lg-4 control-label">
+                            Results per page
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="perpage" name="perpage" type="text" class="form-control" value="{{config['perpage']}}">
+                        </div>
+                        <div class="col-lg-6 col-lg-offset-4">
+                            <small id="emailHelp" class="form-text text-muted">(between 10 and 50)</small>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="context" class="col-lg-4 control-label">
+                            Context words
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="context" name="context" type="text" class="form-control" value="{{config['context']}}">
+                        </div>
+                        <div class="col-lg-6 col-lg-offset-4">
+                            <small id="emailHelp" class="form-text text-muted">(number of words shown in search results)</small>
+                        </div>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="maxchars" class="col-lg-4 control-label">
+                            Context characters
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="maxchars" name="maxchars" type="text" class="form-control" value="{{config['maxchars']}}">
+                        </div>
+                        <div class="col-lg-6 col-lg-offset-4">
+                            <small id="emailHelp" class="form-text text-muted">(max characters in a snippet)</small>
+                        </div>
+                    </div>
+        
+                    <div class="form-group">
+                        <label for="csvfields" class="col-lg-4 control-label">
+                            CSV fields
+                        </label>
+                        <div class="col-lg-8">
+                            <input id="csvfields" name="csvfields" type="text" class="form-control" value="{{config['csvfields']}}">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-lg-4 col-lg-offset-4">
+                            <a href="./" class="btn btn-default">Cancel</a>
+                            <button type="submit" class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+        </div>
+    </div>
 </div>
+
 {% endblock %}
