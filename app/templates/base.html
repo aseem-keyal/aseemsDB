@@ -4,7 +4,8 @@
     {% block head %}
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha512-Dop/vW3iOtayerlYAqCgkVr2aTr2ErwwTYOvRFUpzl2VhCMJyjQF0Q9TjUXIo6JhuM/3i0vVEt2e/7QQmnHQqw==" crossorigin="anonymous" />
-    <link rel="stylesheet" href="/static/style.css" />
+    <link rel="preload" href="/static/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
+    <noscript><link rel="stylesheet" href="/static/style.css"></noscript>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" integrity="sha512-eKDImTay+dzem1seYVlpQEXVUmjMXOd2SpnfIsqqkkCJd6pU0u4yGs5jSrFlTPwnugDdMdCm8WDrOiG8DXBwPg==" crossorigin="anonymous" />
 
 
