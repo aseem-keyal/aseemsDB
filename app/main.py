@@ -126,7 +126,12 @@ async def set(request: Request,
 @app.get("/osd.xml")
 async def get_osd(request: Request):
     osd_xml = pathlib.Path('./templates/osd.xml').read_text()
-    return Response(content=osd_xml, media_type="application/xml")                                    
+    return Response(content=osd_xml, media_type="application/xml")
+
+@app.get("/robots.txt")
+async def get_robotstxt(request: Request):
+    robotstxt = "User-agent: * Disallow: /"
+    return Response(content=robotstxt, media_type="text/plain")
 
 @app.get("/preview/{resnum}", response_class=HTMLResponse)
 async def preview(request: Request, 
