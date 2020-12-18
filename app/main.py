@@ -130,7 +130,7 @@ async def get_osd(request: Request):
 
 @app.get("/robots.txt")
 async def get_robotstxt(request: Request):
-    robotstxt = "User-agent: * Disallow: /"
+    robotstxt = "User-agent: *\nDisallow: /"
     return Response(content=robotstxt, media_type="text/plain")
 
 @app.get("/preview/{resnum}", response_class=HTMLResponse)
