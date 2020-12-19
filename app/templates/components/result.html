@@ -1,0 +1,20 @@
+<div class="well well-sm">
+	<h4 id="r{{result['sha']}}" title="{{result['abstract']}}">
+		{% set i = results.index(result) %}
+		{% set number = offset + i + 1 %}
+		<span class="badge">
+			<a href="#r{{result['sha']}}">#{{number}}</a>
+		</span>
+		<a href="{{ packet_href(result['url'], result['page_num']) }}">{{ render_packet_name(result['filename']) }}</a>
+	</h4>
+	{% if 'author' in result and result['author']|length > 0 %}
+		<h5>{{ result['author'] }}</h5>
+	{% endif %}
+	<h5>{{ result['question_type'] | safe }} 
+		<a href="{{ set_href(result['url']) }}">{{ render_set_name(result['url']) }}</a>
+		<a style="color: #666; float:right" href="{{ preview_href(i, request.query_params) }}" target="_blank">Preview</a>
+	</h5>
+	{% if 'snippet' in result and result['snippet']|length > 0%}
+		<blockquote>{{result['snippet'] | safe}}</blockquote>
+	{% endif %}
+</div>

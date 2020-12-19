@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}: Preview ({{ filename }}){% endblock %}
+{% block head %}
+    {{ super() }}
+    <style>
+	pre {
+	  color: black;
+	  white-space: pre-wrap;
+	  word-break: break-word;
+	}
+    </style>
+{% endblock %}
+{% block content %}
+<div class="well">{{packet_text|safe}}</div>
+{% endblock %}

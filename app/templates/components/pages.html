@@ -1,0 +1,22 @@
+{% if pages > 1 %}
+<div class="text-center">
+<div class="container">
+<ul class="pagination pagination-sm">
+<li><a title="First" class="page" href="{{page_href(request.query_params, 1)}}">&#171;</a></li>
+<li><a title="Previous" class="page" href="{{page_href(request.query_params, [1,page-1]|max)}}">&#8249;</a></li> &nbsp;
+{# TODO: break out magic number 10 (number of pages shown in pagination) to a main.py as variable #}
+{% set offset = page - (page % 10) %}
+{% for p in range([1,offset]|max, [offset+10,pages+1]|min) %}
+{% if p == page %}
+	<li class="active">
+{% else %}
+	<li>
+{% endif %}
+	<a href="{{page_href(request.query_params, p)}}" class="page">{{p}}</a></li>
+{% endfor %}
+&nbsp; <li><a title="Next" class="page" href="{{page_href(request.query_params, [pages, page+1]|min)}}">&#8250;</a></li>
+<li><a title="Last" class="page" href="{{page_href(request.query_params, pages)}}">&#187;</a></li>
+</ul>
+</div>
+</div>
+{% endif %}

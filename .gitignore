@@ -1,3 +1,6 @@
 *.un~
 *.pyc
 static/packet_archive/
+app/static/packet_archive/*
+app/*__pycache__*
+*.swp

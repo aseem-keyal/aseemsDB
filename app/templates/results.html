@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}: {{qs}} ({{nres}}){% endblock %}
+{% block content %}
+	{% include 'components/search.html' %}
+	<div class="panel panel-default">
+		<div class="panel-body">
+			<div class="found">
+				Found <span class="badge"><b>{{nres}}</b></span> matching: <b><i>{{qs}}</i></b>
+				<span class="gray">({{time}}s)</span>
+				{% if nres > 0 %}
+				<div class="btn-group pull-right">
+				    <a class="btn btn-primary btn-xs" href="{{ render_link_params("./json?%s", request.query_params) }}">JSON</a>
+				    <a class="btn btn-primary btn-xs" href="{{ render_link_params("./csv?%s", request.query_params) }}">CSV</a>
+				</div>
+				{% endif %}
+			</div>
+		</div>
+	</div>
+	{% include 'components/pages.html' %}
+	{% for result in results %}
+		{% include 'components/result.html' %}
+	{% endfor %}
+	{% include 'components/pages.html' %}
+{% endblock %}

@@ -1,28 +1,4 @@
-.tt-dropdown-menu,
-.gist {
-  text-align: left;
-}
-
-
-.typeahead,
-.tt-hint {
-  height: 30px;
-  padding: 8px 12px;
-  line-height: 30px;
-  border: 2px solid #ccc;
-  -webkit-border-radius: 8px;
-     -moz-border-radius: 8px;
-          border-radius: 8px;
-  outline: none;
-}
-
-.typeahead {
-  background-color: #fff;
-}
-
-.tt-hint {
-  color: #999
-}
+.search-result-highlight { color: #7E1212; font-weight: bold; }
 
 .tt-dropdown-menu {
   width: 422px;
@@ -47,14 +23,5 @@
 
 .tt-suggestion.tt-is-under-cursor {
   color: #fff;
-  background-color: #0097cf;
-
-}
-
-.tt-suggestion p {
-  margin: 0;
-}
-
-.gist {
-  font-size: 14px;
+  background-color: #2c3e51;
 }
