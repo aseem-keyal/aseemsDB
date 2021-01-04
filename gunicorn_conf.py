@@ -40,6 +40,7 @@ keepalive_str = os.getenv("KEEP_ALIVE", "5")
 loglevel = use_loglevel
 workers = web_concurrency
 bind = use_bind
+max_requests = 10
 errorlog = use_errorlog
 worker_tmp_dir = "/dev/shm"
 accesslog = use_accesslog
@@ -58,6 +59,7 @@ log_data = {
     "keepalive": keepalive,
     "errorlog": errorlog,
     "accesslog": accesslog,
+    "max_requests": max_requests,
     # Additional, non-gunicorn variables
     "workers_per_core": workers_per_core,
     "use_max_workers": use_max_workers,
