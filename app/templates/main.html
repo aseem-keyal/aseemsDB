@@ -1,4 +1,25 @@
 {% extends "base.html" %}
+{% block head %}
+    {{ super() }}
+    <script type="text/javascript">
+		$(document).ready(function() {
+			$('#folders').multiselect({
+				buttonWidth:'100%',
+				enableFiltering: true,
+				enableCaseInsensitiveFiltering: true,
+				includeFilterClearBtn: false,
+				maxHeight: 400,
+				nonSelectedText: '<all>'
+			});
+		});
+
+		function searchSubmit(){
+			var text = $('#folders').val().join();
+			$('#folders').val("");
+			$('#folders_hidden').val(text);
+		 }
+	</script>
+{% endblock %}
 {% block content %}
 	{% include 'components/search.html' %}
 {% endblock %}

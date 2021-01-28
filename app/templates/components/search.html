@@ -1,5 +1,5 @@
 <div class="well">
-<form action="results" method="get" class="form-horizontal">
+<form action="results" method="get" class="form-horizontal" name="search" onsubmit="searchSubmit()">
 <fieldset>
 <legend>Search</legend>
 <div class="form-group">
@@ -21,10 +21,10 @@
 <div class="form-group">
       <label for="select" class="col-lg-2 control-label">Folder</label>
       <div class="col-lg-10">
-        <select name="dir" id="folders" class="form-control">
+        <select name="dir" id="folders" class="form-control" multiple="multiple">
 	{% for d in dirs %} 
-		{% if d in request.query_params['dir'] %}
-			<option selected value="{{d}}">{{render_path(d)}}</option>
+		{% if request.query_params['dir'] and d in request.query_params['dir'].split(",") %}
+                  <option selected value="{{d}}">{{render_path(d)}}</option>
 		{% else %}
 			<option value="{{d}}">{{render_path(d)}}</option>
 		{% endif %}
@@ -32,6 +32,7 @@
         </select><br>
       </div>
 </div>
+<input type="hidden" name="dir" id="folders_hidden">
 <div id="collapseOne" class="accordion-body collapse">
 <div class="form-group">
       <label for="snippets" class="col-lg-2 control-label">No snippets (faster)</label>

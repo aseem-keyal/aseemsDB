@@ -1,7 +1,7 @@
-{% extends "base.html" %}
+{% extends "main.html" %}
 {% block title %}: {{qs}} ({{nres}}){% endblock %}
 {% block content %}
-	{% include 'components/search.html' %}
+	{{ super() }}
 	<div class="panel panel-default">
 		<div class="panel-body">
 			<div class="found">

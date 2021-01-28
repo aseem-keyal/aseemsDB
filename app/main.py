@@ -262,7 +262,7 @@ def get_dirs(tops, depth):
         top_path = top.rsplit('/', 1)[0]
         dirs = [w.replace(top_path+'/', '', 1) for w in dirs]
         v = v + dirs
-    return ['<all>'] + v
+    return v
 
 def normalise_filename(fn):
     valid_chars = "_-%s%s" % (string.ascii_letters, string.digits)
@@ -275,7 +275,7 @@ def normalise_filename(fn):
     return out
 
 def sorted_dirs(tops, depth):
-    return filter(None, sorted(get_dirs(tops, depth), key=lambda p: (p.count(os.path.sep), p)))
+    return filter(None, sorted(get_dirs(tops, depth), key=lambda p: (-1*p.count(os.path.sep), p.split(os.path.sep)[-1]), reverse=True))
 
 class HlMeths:
     def startMatch(self, idx):
@@ -333,8 +333,11 @@ def build_query_string(query, dir):
     qs = qs.replace("\\", "")
     qs = qs.replace("\'", " ")
     qs = qs.replace(".", "")
-    if dir != '<all>':
-        qs += " dir:\"%s\" " % dir 
+    dirs = dir.split(",")
+    if len(dir) > 0 and '<all>' not in dirs:
+        directory_strings = ["dir:\"%s\"" % directory for directory in dirs]
+        directory_string = (" OR ").join(directory_strings)
+        qs += " (%s)" % directory_string
     return qs
 
 def recoll_initsearch(config, query, dir, sort, ascending):

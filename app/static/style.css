@@ -25,3 +25,22 @@
   color: #fff;
   background-color: #2c3e51;
 }
+
+.multiselect-option {
+  width: 100%;
+  background-color: #fff;
+  text-align: left;
+  border-style: none;
+}
+
+.multiselect-search {
+  width: 100%;
+}
+
+.multiselect-filter .input-group {
+  width: 100%;
+}
+
+.form-check-label {
+  padding-left: 10px
+}
