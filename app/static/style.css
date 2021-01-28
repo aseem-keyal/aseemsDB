@@ -16,6 +16,7 @@
 }
 
 .tt-suggestion {
+  color: #464565;
   padding: 3px 20px;
   font-size: 18px;
   line-height: 24px;
@@ -29,12 +30,17 @@
 .multiselect-option {
   width: 100%;
   background-color: #fff;
+  color: #464565;
   text-align: left;
   border-style: none;
 }
 
 .multiselect-search {
   width: 100%;
+}
+
+.multiselect-selected-text {
+  color: #464565;
 }
 
 .multiselect-filter .input-group {
