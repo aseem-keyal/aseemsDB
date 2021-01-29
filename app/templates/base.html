@@ -6,7 +6,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha512-Dop/vW3iOtayerlYAqCgkVr2aTr2ErwwTYOvRFUpzl2VhCMJyjQF0Q9TjUXIo6JhuM/3i0vVEt2e/7QQmnHQqw==" crossorigin="anonymous" />
     <link rel="preload" href="/static/style.css" as="style" onload="this.onload=null;this.rel='stylesheet'">
     <noscript><link rel="stylesheet" href="/static/style.css"></noscript>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/darkly/bootstrap.min.css" integrity="sha512-eNdfui/ORBxfT47zV3Q41zn0dwBj5zlSvOeZecZfKl+K6ewOLhSisjGBQ2uJtafuQdPY2YXH2sbzKlOoMfPPQw==" crossorigin="anonymous" />
+    {% if 'darkmode' in request.cookies and request.cookies.get('darkmode') == "1" %}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/darkly/bootstrap.min.css" integrity="sha512-eNdfui/ORBxfT47zV3Q41zn0dwBj5zlSvOeZecZfKl+K6ewOLhSisjGBQ2uJtafuQdPY2YXH2sbzKlOoMfPPQw==" crossorigin="anonymous" />
+    {% else %}
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootswatch/3.4.0/flatly/bootstrap.min.css" integrity="sha512-eKDImTay+dzem1seYVlpQEXVUmjMXOd2SpnfIsqqkkCJd6pU0u4yGs5jSrFlTPwnugDdMdCm8WDrOiG8DXBwPg==" crossorigin="anonymous" />
+    {% endif %}
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-multiselect/0.9.16/css/bootstrap-multiselect.min.css" integrity="sha512-wHTuOcR1pyFeyXVkwg3fhfK46QulKXkLq1kxcEEpjnAPv63B/R49bBqkJHLvoGFq6lvAEKlln2rE1JfIPeQ+iw==" crossorigin="anonymous" />
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha512-bLT0Qm9VnAYZDflyKcBaQ2gg0hSYNQrJ8RilYldYQ1FxQYoCLtUjuuRuZo+fjqhx/qtq/1itJ0C2ejDxltZVFg==" crossorigin="anonymous"></script>

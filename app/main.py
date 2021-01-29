@@ -43,9 +43,10 @@ DEFAULTS = {
     'perpage': 25,
     'csvfields': 'filename title author size time mtype url',
     'title_link': 'download',
+    'darkmode': 0
 }
 
-available_settings = ["stem", "maxresults", "perpage", "context", "maxchars", "csvfields"]
+available_settings = ["stem", "maxresults", "perpage", "context", "maxchars", "csvfields", "darkmode"]
 
 SORTS = [
     ("url", "Path"),
@@ -113,6 +114,7 @@ async def settings(request: Request):
 @app.get("/set")
 async def set(request: Request,
         stem: Optional[int] = Query(DEFAULTS['stem'], ge=0, le=1),
+        darkmode: Optional[int] = Query(DEFAULTS['darkmode'], ge=0, le=1),
         maxresults: Optional[int] = Query(DEFAULTS['maxresults'], ge=0),
         perpage: Optional[int] = Query(DEFAULTS['perpage'], ge=10, le=50),
         context: Optional[int] = Query(DEFAULTS['context'], ge=0),
@@ -121,7 +123,17 @@ async def set(request: Request,
     response = RedirectResponse(url='/')
     for setting in available_settings:
         response.set_cookie(setting, request.query_params[setting], max_age=315360000, expires=315360000)
-    return response               
+    return response
+
+@app.get("/toggle_dark_mode")
+async def toggle_dark_mode(request: Request):
+    response = RedirectResponse(url='/')
+    if "darkmode" in request.cookies:
+        darkmode = str(1 - int(request.cookies.get("darkmode")))
+    else:
+        darkmode = "1"
+    response.set_cookie("darkmode", darkmode, max_age=315360000, expires=315360000)
+    return response
 
 @app.get("/osd.xml")
 async def get_osd(request: Request):
