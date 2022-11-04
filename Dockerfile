@@ -6,7 +6,7 @@ RUN add-apt-repository ppa:recoll-backports/recoll-1.15-on && apt-get update
 
 RUN apt-get install -y \
 	python3-pip \
-	python3-recoll=1.31.6-1~ppa1~focal1 \
+	python3-recoll=1.32.7-1~ppa3~focal1 \
 	poppler-utils
 
 RUN pip3 install --no-cache-dir uvicorn gunicorn fastapi jinja2 aiofiles uvloop httptools websockets
